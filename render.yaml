@@ -1,0 +1,44 @@
+# Render Blueprint (New > Blueprint > this repo). The API runs a prebuilt image from GHCR; Render
+# never builds or auto-deploys. .github/workflows/release.yml deploys each tagged release (ADR 0002).
+# Publish release v0.1.0 first so the image exists, then create the Blueprint.
+services:
+  - type: web
+    name: otterfind-api
+    runtime: image
+    plan: free
+    image:
+      # Replace <org> with the GitHub organization name, lowercase.
+      url: ghcr.io/<org>/otterfind-api:latest
+    healthCheckPath: /actuator/health
+    envVars:
+      # Supabase session pooler, JDBC form. See docs/runbook.md, "First-time setup".
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USER
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: APP_JWT_SECRET_BASE64
+        sync: false
+      - key: APP_JWT_ISSUER
+        sync: false
+      - key: APP_CORS_ORIGINS
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_WEB_CLIENT_ID
+        sync: false
+      - key: GOOGLE_WEB_CLIENT_SECRET
+        sync: false
+      - key: R2_ENDPOINT
+        sync: false
+      - key: R2_BUCKET_NAME
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: JAVA_TOOL_OPTIONS
+        value: "-XX:MaxRAMPercentage=75"
