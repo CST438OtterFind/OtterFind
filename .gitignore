@@ -1,0 +1,16 @@
+.env
+api/.env.example
+!api/.env.example
+**/build/
+**/.gradle/
+**/.kotlin/
+.idea/
+*.iml
+node_modules
+.DS_Store
+local.properties
+.expo/
+dist/
+web-build/
+test-results/
+playwright-report/
