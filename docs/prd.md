@@ -24,7 +24,10 @@ one specific course" is.
 
 Two sentences: what the user struggles with today, and why existing options fall short.
 
-`<problem statement>`
+`With the bustle of school life, it's not unhear of to leave
+something behind in a classroom by accident. 
+Currently, there are very limited options for a "lost and found" system, 
+since not everything valuable on your person is able to be tracked.`
 
 ## 3. Success measures
 
