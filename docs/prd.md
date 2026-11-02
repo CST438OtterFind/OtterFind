@@ -7,7 +7,7 @@
 > After the presentation, change it only through pull requests, so the history shows what changed and why.
 > Your Final Submission is graded against this document.
 
-**Team:** `p3_s1_group_07 (Group 7)` · **Repo:** `https://github.com/CST438OtterFind/OtterFind` · **Last updated:** `10/29/26`
+**Team:** `p3_s1_group_07 (Group 7)` · **Repo:** `https://github.com/CST438OtterFind/OtterFind` · **Last updated:** `11/1/26`
 
 ---
 
@@ -22,9 +22,9 @@
 
 Two sentences: what the user struggles with today, and why existing options fall short.
 
-`With the bustle of school life, it's not unhear of to leave
+`With the bustle of school life, it's not unheard of to leave
 something behind in a classroom by accident. 
-Currently, there are very limited options for a "lost and found" system, 
+Currently, there are very limited options for a "lost and found" system,
 since not everything valuable on your person is able to be tracked.`
 
 ## 3. Success measures
@@ -57,13 +57,13 @@ One row per MVP story. Each GitHub issue links to its story ID (`PRD-3`) and eac
 least one acceptance criterion in **Given / When / Then** form that someone outside the team could
 test.
 
-| ID    | Story                                                                                                                 | Acceptance criteria |
-|-------|-----------------------------------------------------------------------------------------------------------------------|---|
-| PRD-1 | As a `<user>`, I want to `<action>` so that `<benefit>`.                                                              | **Given** `<state>`, **when** `<action>`, **then** `<observable result>`. |
-| PRD-2 |                                                                                                                       | |
-| PRD-3 |                                                                                                                       | |
-| PRD-4 | As someone who lost something, I want to post it with where I last saw it so that people know what and where to look. | **Given** I am signed in, **when** I post "Grey tabby cat" as Lost, category Pet, building "Library", floor 2, a pin on the map and a last-seen time, **then** it appears at the top of the feed with its building and pin. **Given** a title under 4 characters or no building, **when** I submit, **then** I see which field is wrong and nothing is posted. |
-| PRD-5 |                                                                                                                       ||
+| ID    | Story                                                                                                                     | Acceptance criteria                                                                                                                                                                                                                                                                                                                                            |
+|-------|---------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| PRD-1 | As a `<user>`, I want to `<action>` so that `<benefit>`.                                                                  | **Given** `<state>`, **when** `<action>`, **then** `<observable result>`.                                                                                                                                                                                                                                                                                      |
+| PRD-2 |                                                                                                                           |                                                                                                                                                                                                                                                                                                                                                                |
+| PRD-3 | As someone who found an item with an unknown owner, I want to be able to report a missing item to try and find the owner. | **Given** `I have an account and found a missing item`, **when** `I fill out a Report with details`, **then** `the lost item is posted for other users to see.`                                                                                                                                                                                                |
+| PRD-4 | As someone who lost something, I want to post it with where I last saw it so that people know what and where to look.     | **Given** I am signed in, **when** I post "Grey tabby cat" as Lost, category Pet, building "Library", floor 2, a pin on the map and a last-seen time, **then** it appears at the top of the feed with its building and pin. **Given** a title under 4 characters or no building, **when** I submit, **then** I see which field is wrong and nothing is posted. |
+| PRD-5 |                                                                                                                           |                                                                                                                                                                                                                                                                                                                                                                |
 
 
 ---
