@@ -32,11 +32,11 @@ since not everything valuable on your person is able to be tracked.`
 Three measurable signals that would show the product works. Each one needs a number and a way to
 check it.
 
-| # | Measure | Target                  | How we check it |
-|---|---|-------------------------|---|
-| S1 | `A new user signs in and posts a lost item with its building and a map pin` | `Under 1 minute 30 sec` | `Timed with a visiting student during the onboarding check-in` |
-| S2 | |                         | |
-| S3 | |                         | |
+| # | Measure                                                                                          | Target                  | How we check it                                                                                            |
+|---|--------------------------------------------------------------------------------------------------|-------------------------|------------------------------------------------------------------------------------------------------------|
+| S1 | `A new user signs in and posts a lost item with its building and a map pin`                      | `Under 1 minute 30 sec` | `Timed with a visiting student during the onboarding check-in`                                             |
+| S2 | `A user is able to click on a lost item and see its details as well as its location on the map.` | `Under 10 seconds`      | `When clicking on an item, the screen transitions/adds item details to the view without crashing the app.` |
+| S3 |                                                                                                  |                         |                                                                                                            |
 
 ## 4. Scope: MVP, vertical slice, and not building
 
