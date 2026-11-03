@@ -1,0 +1,23 @@
+server:
+  # Render sets PORT. Local runs and Compose use 8080.
+  port: ${PORT:8080}
+
+spring:
+  datasource:
+    # Supabase session pooler on Render, local Postgres under Compose. See docs/runbook.md.
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      # Well under the Supabase free plan's pooler limit of 15 connections per role.
+      maximum-pool-size: 5
+
+app:
+  jwt:
+    # Missing values become blank so SecurityConfig can stop startup with a clear message. Without the
+    # trailing colon, Spring would pass the literal text "${APP_JWT_ISSUER}" through as the value.
+    secret-base64: ${APP_JWT_SECRET_BASE64:}
+    issuer: ${APP_JWT_ISSUER:}
+  cors:
+    # Comma-separated. Empty blocks every browser origin until the web client is deployed.
+    origins: ${APP_CORS_ORIGINS:}
