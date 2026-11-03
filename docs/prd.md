@@ -68,8 +68,116 @@ test.
 | PRD-6 | As someone who lost or found an item, I want to message the other person in the app so that we can arrange to return it without sharing personal contact info. | **Given** I am signed in and viewing someone else's post, **when** I tap "Message" and send "I think I saw your cat by the library", **then** the conversation appears in both users' inboxes with the post linked. **Given** I am the post owner, **when** I reply, **then** the other user sees my reply in the same conversation. **Given** I am viewing my own post, **then** no "Message" button is shown. |
 | PRD-7 | As someone who spotted a lost item, I want to add a sighting with where and when I saw it so that the owner knows where it is now.                             | **Given** I am signed in and viewing "Grey tabby cat", **when** I add a sighting with building "Student Center", a map pin and the time, **then** the sighting appears on the item, newest first, and the owner sees it on their post. **Given** I leave the building empty, **when** I submit, **then** I see which field is wrong and nothing is added. |
 
+## 6. Technical Plan
 
+# Lost and Found ERD
+
+```mermaid
+erDiagram
+    USER ||--o{ ITEM_LISTING : posts
+    ITEM_LISTING ||--o{ CONVERSATION : discusses
+    CONVERSATION ||--o{ CONVERSATION_PARTICIPANT : includes
+    USER ||--o{ CONVERSATION_PARTICIPANT : joins
+    CONVERSATION ||--o{ MESSAGE : contains
+    USER ||--o{ MESSAGE : sends
+
+    USER {
+        long id PK
+        string email
+        string display_name
+        string role
+        datetime created_at
+    }
+
+    ITEM_LISTING {
+        long id PK
+        long owner_id FK
+        string category
+        string listing_type
+        string item_name
+        string description
+        string image_url
+        decimal longitude
+        decimal latitude
+        string location_label
+        string status
+        datetime created_at
+    }
+
+    CONVERSATION {
+        long id PK
+        long item_listing_id FK
+        datetime created_at
+    }
+
+    CONVERSATION_PARTICIPANT {
+        long conversation_id PK, FK
+        long user_id PK, FK
+    }
+
+    MESSAGE {
+        long id PK
+        long conversation_id FK
+        long sender_id FK
+        string text
+        string image_url
+        datetime sent_at
+    }
+```
+
+# Architecture Sketch
+```mermaid
+flowchart TB
+    subgraph CLIENTS["Clients"]
+        direction LR
+        WEB["Web client<br/>React Native + Expo"]
+        ANDROID["Android client<br/>React Native + Expo"]
+    end
+
+    API["Spring Boot REST API"]
+    DB[("PostgreSQL database")]
+
+    subgraph PROVIDERS["OAuth providers"]
+        direction LR
+        GOOGLE["Google OAuth"]
+        GITHUB["GitHub OAuth"]
+    end
+
+    WEB -->|"HTTPS API requests"| API
+    ANDROID -->|"HTTPS API requests"| API
+    API -->|"API responses and app session"| WEB
+    API -->|"API responses and app session"| ANDROID
+    API <-->|"Exchange or validate sign-in"| GOOGLE
+    API <-->|"Exchange or validate sign-in"| GITHUB
+    WEB <-->|"Sign-in and redirect"| GOOGLE
+    WEB <-->|"Sign-in and redirect"| GITHUB
+    ANDROID <-->|"Sign-in and redirect"| GOOGLE
+    ANDROID <-->|"Sign-in and redirect"| GITHUB
+    API <-->|"Read and write app data"| DB
+```
+
+### API Routes for the vertical slice
+| Method | Route | Purpose |
+|---|---|---|
+| `POST` | `/api/auth/{provider}/exchange` | Complete sign-in with Google or GitHub and return the app session |
+| `GET` | `/api/users/me` | Return the signed-in user |
+| `POST` | `/api/uploads` | Upload an item or message photo and return its URL |
+| `GET` | `/api/items?listingType=&lat=&lng=&radius=` | Browse listings, optionally filtered by type and location |
+| `POST` | `/api/items` | Create a lost or found listing |
+| `GET` | `/api/items/{itemId}` | View a listing’s details |
+| `POST` | `/api/items/{itemId}/conversations` | Start a conversation about the listing |
+| `GET` | `/api/conversations` | List the signed-in user’s conversations |
+| `GET` | `/api/conversations/{conversationId}/messages` | Load messages in a conversation |
+| `POST` | `/api/conversations/{conversationId}/messages` | Send a message, optionally with an uploaded image URL |
 ---
+### Where is everything hosted?
+| Website: Hosted on Render |
+
+| Our API: Springboot Docker Container running on render |
+
+| Android App: Expo application using React Native |
+
+| Database: Supabase |
 
 ### Change log
 
@@ -79,3 +187,4 @@ test.
 | `11/1`  | `2` | Daniel - updated PRD                 |
 | `11/2`  | `4` | Daniel - updated PRD                 |
 | `11/2`  | `5` | Tony - updated PRD                   |
+| `11/2`  | `6` | Rian - updated PRD, added ERD, Mermaid Chart|
