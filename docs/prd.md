@@ -48,8 +48,7 @@ account baseline (sign in with GitHub and Google, update profile, delete account
 stories specific to your product.
 
 - **MVP stories:** `<PRD-1, PRD-2, ...>` (listed in section 5)
-- **Vertical slice:** `<the one MVP story you will polish end to end and test with Playwright>`
--  PRD-4: Post a lost item with where it was last seen, then a second user
+- **Vertical slice:** PRD-4: Post a lost item with where it was last seen, then a second user
    finds it and adds a sighting the owner can see, on web and Android. This is what the Playwright test
    walks and what the demo opens with.
 - **Not building (this term):** `Group messaging, a wider radius than the CSUMB campus, user location function`
