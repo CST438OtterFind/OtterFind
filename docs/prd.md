@@ -2,12 +2,7 @@
 
 [Back to the Project 03 guide](README.md)
 
-> Copy this file to `docs/prd.md` in your team repo and replace everything in angle brackets.
-> Keep it to **one page**. Commit it **before the group proposal presentation**; the commit date is checked.
-> After the presentation, change it only through pull requests, so the history shows what changed and why.
-> Your Final Submission is graded against this document.
-
-**Team:** `p3_s1_group_07 (Group 7)` · **Repo:** `https://github.com/CST438OtterFind/OtterFind` · **Last updated:** `11/1/26`
+**Team:** `p3_s1_group_07 (Group 7)` · **Repo:** `https://github.com/CST438OtterFind/OtterFind` · **Last updated:** `11/2/26`
 
 ---
 
@@ -52,9 +47,7 @@ stories specific to your product.
    finds it and adds a sighting (PRD-7) the owner can see, on web and Android. This is what the Playwright test
    walks and what the demo opens with.
 - **Not building (this term):**
-  - Group messaging (messaging is one-to-one between the poster and a helper).
   - Anything beyond the CSUMB campus.
-  - Live user location tracking (users drop a pin by hand).
   - An iOS app (we ship web and Android only).
   - Rewards or payments for returning an item.
   - Ownership verification or claim checks for found items.
@@ -85,4 +78,4 @@ test.
 | `10/29` | `1` | Brandon - added PRD, success target, |
 | `11/1`  | `2` | Daniel - updated PRD                 |
 | `11/2`  | `4` | Daniel - updated PRD                 |
-| `11/2`  | `x` | Tony - merged with main; filled MVP and not-building list, added PRD-1, 5, 6, 7 |
+| `11/2`  | `5` | Tony - updated PRD                   |
