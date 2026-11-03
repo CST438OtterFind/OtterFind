@@ -13,10 +13,13 @@
 
 ## 1. Users
 
-- **Primary user:** `a CSUMB student who has lost something on campus (a pet, a laptop, a notebook, keys)
+- **Primary user:** `a CSUMB student or staff member who has lost something on campus (a pet, a laptop, a notebook, keys)
   and wants people who walk past it to be able to tell them exactly where they saw it.`
 
-- **Secondary user (optional):** `<for example, an admin>`
+- **Secondary user:** `A CSUMB student or staff member that finds a lost item can create a report for it
+  with any additional details.`
+
+- **Tertiary user:** `An admin that removes any abusive or fake posts/messages.`
 
 ## 2. Problem
 
@@ -32,11 +35,11 @@ since not everything valuable on your person is able to be tracked.`
 Three measurable signals that would show the product works. Each one needs a number and a way to
 check it.
 
-| # | Measure                                                                                          | Target                  | How we check it                                                                                            |
-|---|--------------------------------------------------------------------------------------------------|-------------------------|------------------------------------------------------------------------------------------------------------|
-| S1 | `A new user signs in and posts a lost item with its building and a map pin`                      | `Under 1 minute 30 sec` | `Timed with a visiting student during the onboarding check-in`                                             |
-| S2 | `A user is able to click on a lost item and see its details as well as its location on the map.` | `Under 10 seconds`      | `When clicking on an item, the screen transitions/adds item details to the view without crashing the app.` |
-| S3 |                                                                                                  |                         |                                                                                                            |
+| # | Measure                                                                                          | Target                  | How we check it                                                                                                        |
+|---|--------------------------------------------------------------------------------------------------|-------------------------|------------------------------------------------------------------------------------------------------------------------|
+| S1 | `A new user signs in and posts a lost item with its building and a map pin`                      | `Under 1 minute 30 sec` | `Timed with a visiting student during the onboarding check-in`                                                         |
+| S2 | `A user is able to click on a lost item and see its details as well as its location on the map.` | `Under 10 seconds`      | `When clicking on an item, the screen transitions/adds item details to the view without crashing the app.`             |
+| S3 | `A user is able to communicate and send a message to someone who has found an item`              | `Under 1 minute`        | `When selecting a report for a lost item, a message function shows up and allows a user to communicate successfully. ` |
 
 ## 4. Scope: MVP, vertical slice, and not building
 
@@ -45,11 +48,10 @@ account baseline (sign in with GitHub and Google, update profile, delete account
 stories specific to your product.
 
 - **MVP stories:** `<PRD-1, PRD-2, ...>` (listed in section 5)
-- **Vertical slice:** `<the one MVP story you will polish end to end and test with Playwright>`
--  PRD-4: Post a lost item with where it was last seen, then a second user
+- **Vertical slice:** PRD-4: Post a lost item with where it was last seen, then a second user
    finds it and adds a sighting the owner can see, on web and Android. This is what the Playwright test
    walks and what the demo opens with.
-- **Not building (this term):** `<at least three things a reader might expect that you are deliberately leaving out>`
+- **Not building (this term):** `Group messaging, a wider radius than the CSUMB campus, user location function`
 
 ## 5. User stories and acceptance criteria
 
@@ -57,21 +59,21 @@ One row per MVP story. Each GitHub issue links to its story ID (`PRD-3`) and eac
 least one acceptance criterion in **Given / When / Then** form that someone outside the team could
 test.
 
-| ID    | Story                                                                                                                     | Acceptance criteria                                                                                                                                                                                                                                                                                                                                            |
-|-------|---------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| PRD-1 | As a `<user>`, I want to `<action>` so that `<benefit>`.                                                                  | **Given** `<state>`, **when** `<action>`, **then** `<observable result>`.                                                                                                                                                                                                                                                                                      |
-| PRD-2 |                                                                                                                           |                                                                                                                                                                                                                                                                                                                                                                |
-| PRD-3 | As someone who found an item with an unknown owner, I want to be able to report a missing item to try and find the owner. | **Given** `I have an account and found a missing item`, **when** `I fill out a Report with details`, **then** `the lost item is posted for other users to see.`                                                                                                                                                                                                |
-| PRD-4 | As someone who lost something, I want to post it with where I last saw it so that people know what and where to look.     | **Given** I am signed in, **when** I post "Grey tabby cat" as Lost, category Pet, building "Library", floor 2, a pin on the map and a last-seen time, **then** it appears at the top of the feed with its building and pin. **Given** a title under 4 characters or no building, **when** I submit, **then** I see which field is wrong and nothing is posted. |
-| PRD-5 |                                                                                                                           |                                                                                                                                                                                                                                                                                                                                                                |
+| ID    | Story                                                                                                                                      | Acceptance criteria                                                                                                                                                                                                                                                                                                                                           |
+|-------|--------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| PRD-1 | As a `<user>`, I want to `<action>` so that `<benefit>`.                                                                                   | **Given** `<state>`, **when** `<action>`, **then** `<observable result>`.                                                                                                                                                                                                                                                                                     |
+| PRD-2 | As a staff member who found multiple lost items, I want to see a list of reported lost items so I can try and pinpoint who they belong to. | **Given** `I have an account and am signed in`, **when** `I pull up the map or list of lost items`, **then** `I can thereafter mind more details on the lost items.`                                                                                                                                                                                          |
+| PRD-3 | As someone who found an item with an unknown owner, I want to be able to report a missing item to try and find the owner.                  | **Given** `I have an account and found a missing item`, **when** `I fill out a Report with details`, **then** `the lost item is posted for other users to see.`                                                                                                                                                                                               |
+| PRD-4 | As someone who lost something, I want to post it with where I last saw it so that people know what and where to look.                      | **Given** I am signed in, **when** I post "Grey tabby cat" as Lost, category Pet, building "Library", floor 2, a pin on the map and a last-seen time, **then** it appears at the top of the feed with its building and pin. **Given** a title under 4 characters or no building, **when** I submit, **then** I see which field is wrong and nothing is posted. |
+| PRD-5 |                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                               |
 
 
 ---
 
 ### Change log
 
-| Date    | PR  | What changed and why                       |
-|---------|-----|--------------------------------------------|
-| `10/28` | `1` | Initial version - No change, only template |
-| `10/29` | `2` | Brandon - added PRD, success target,       |
-| `date`  | `x` |                                            |
+| Date    | PR  | What changed and why                 |
+|---------|-----|--------------------------------------|
+| `10/29` | `1` | Brandon - added PRD, success target, |
+| `11/1`  | `2` | Daniel - updated PRD                 |
+| `11/2`  | `4` | Daniel - updated PRD                 |
