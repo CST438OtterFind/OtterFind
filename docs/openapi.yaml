@@ -1,0 +1,79 @@
+openapi: 3.1.0
+info:
+  title: OtterFind API
+  version: 0.1.0
+  description: >
+    Hand-written contract for the OtterFind API. Add a route here, and commit it, before the
+    controller that implements it. Errors follow docs/error-model.md.
+servers:
+  - url: http://localhost:8080
+    description: Local stack from `docker compose up`
+paths:
+  /api/buildings:
+    get:
+      operationId: listBuildings
+      summary: List campus buildings for the map and the building picker
+      description: >
+        Public, because buildings are campus reference data and hold nothing about any user.
+        Sorted by name, ignoring case.
+      tags: [Buildings]
+      security: []
+      responses:
+        "200":
+          description: Every campus building
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Building"
+              example:
+                - id: 25
+                  name: Library
+                  latitude: 36.65231
+                  longitude: -121.79614
+        "500":
+          description: Unexpected server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+components:
+  schemas:
+    Building:
+      type: object
+      required: [id, name, latitude, longitude]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          examples: [Library]
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+    Problem:
+      description: RFC 9457 Problem Details. See docs/error-model.md.
+      type: object
+      required: [title, status]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
