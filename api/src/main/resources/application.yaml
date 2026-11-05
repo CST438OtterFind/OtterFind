@@ -3,6 +3,10 @@ server:
   port: ${PORT:8080}
 
 spring:
+  mvc:
+    # Errors use RFC 9457 Problem Details. See docs/error-model.md.
+    problemdetails:
+      enabled: true
   datasource:
     # Supabase session pooler on Render, local Postgres under Compose. See docs/runbook.md.
     url: ${DATABASE_URL}
