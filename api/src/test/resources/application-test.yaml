@@ -1,0 +1,13 @@
+# Test values only. The JWT secret below signs nothing outside these tests.
+spring:
+  datasource:
+    url: jdbc:h2:mem:otterfind;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password: ""
+
+app:
+  jwt:
+    secret-base64: dGVzdC1vbmx5LXNlY3JldC10ZXN0LW9ubHktc2VjcmV0LTEyMzQ=
+    issuer: http://test.otterfind
+  cors:
+    origins: http://localhost:8081, https://web.otterfind.test

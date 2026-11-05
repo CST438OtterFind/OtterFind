@@ -1,0 +1,68 @@
+-- Campus buildings for the map and the building picker. See docs/erd.md.
+--
+-- Names and coordinates come from OpenStreetMap, (c) OpenStreetMap contributors, available under the
+-- Open Database License: https://www.openstreetmap.org/copyright
+-- Spelling was corrected by hand, and "Library" matches the name PRD-4 uses. IDs are generated, so
+-- look a building up by name instead of hard-coding its ID in later migrations.
+CREATE TABLE buildings (
+    id        BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name      VARCHAR(120) NOT NULL UNIQUE,
+    latitude  DOUBLE PRECISION NOT NULL CHECK (latitude BETWEEN -90 AND 90),
+    longitude DOUBLE PRECISION NOT NULL CHECK (longitude BETWEEN -180 AND 180)
+);
+
+INSERT INTO buildings (name, latitude, longitude) VALUES
+    ('Administration Building', 36.65336, -121.79859),
+    ('Alumni and Visitor Center', 36.65444, -121.80179),
+    ('Aquatic Center', 36.65151, -121.80742),
+    ('Asilomar Hall', 36.65306, -121.79626),
+    ('Avocet Hall', 36.65331, -121.79963),
+    ('Beach Hall', 36.65263, -121.79923),
+    ('Black Box Cabaret', 36.65575, -121.80369),
+    ('Business Information and Technology', 36.65240, -121.79726),
+    ('Chapman Science Academic Center', 36.65331, -121.79445),
+    ('Cinematic Arts and Technology', 36.65194, -121.79383),
+    ('Coast Hall', 36.65071, -121.79316),
+    ('College of Arts, Humanities and Social Sciences', 36.65233, -121.79839),
+    ('Cypress Hall', 36.65353, -121.79578),
+    ('Dining Commons', 36.65421, -121.79886),
+    ('Dunes Hall', 36.65367, -121.80068),
+    ('Field House', 36.65114, -121.80596),
+    ('Forest Hall', 36.65258, -121.79266),
+    ('Gavilan Hall', 36.65435, -121.79284),
+    ('Green Hall', 36.65208, -121.79056),
+    ('Grove Hall', 36.65210, -121.79267),
+    ('Harbor Hall', 36.65115, -121.79315),
+    ('Health & Wellness Services', 36.65557, -121.80314),
+    ('Heron Hall', 36.65428, -121.79985),
+    ('IT Services', 36.64930, -121.79314),
+    ('Library', 36.65231, -121.79614),
+    ('Manzanita Hall', 36.65329, -121.79707),
+    ('Meeting House', 36.65328, -121.80154),
+    ('Mountain Hall', 36.65546, -121.80630),
+    ('Oaks Hall', 36.65500, -121.79210),
+    ('Ocean Hall', 36.65563, -121.80717),
+    ('Otter Express', 36.65422, -121.79827),
+    ('Otter Sports Center', 36.65443, -121.80819),
+    ('Otter Student Union', 36.65434, -121.79617),
+    ('Pacific Hall', 36.65027, -121.79316),
+    ('Pinnacles Suites', 36.65534, -121.80127),
+    ('Playa', 36.65335, -121.79807),
+    ('Reading Center', 36.65255, -121.79055),
+    ('Sanderling Hall', 36.65346, -121.80101),
+    ('Strawberry Apartments', 36.65557, -121.80045),
+    ('Student Center', 36.65426, -121.79739),
+    ('Student Services', 36.65161, -121.79266),
+    ('Surf Hall', 36.65356, -121.79734),
+    ('Tide Hall', 36.65264, -121.80028),
+    ('Tortuga Hall', 36.65358, -121.80035),
+    ('University Center', 36.65003, -121.79413),
+    ('Valley Hall', 36.65539, -121.80440),
+    ('Vineyard Suites', 36.65612, -121.80141),
+    ('Visual and Public Art', 36.65535, -121.79631),
+    ('Watershed Institute', 36.64980, -121.79267),
+    ('Wave Hall', 36.65359, -121.79611),
+    ('Weaver Student Observatory', 36.66118, -121.80805),
+    ('Willet Hall', 36.65356, -121.79646),
+    ('World Theater', 36.65090, -121.79392),
+    ('Yarrow Hall', 36.65328, -121.79766);
