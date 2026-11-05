@@ -1,0 +1,4 @@
+# Test-only JWT secret in api/src/test/resources/application-test.yaml. It decodes to
+# "test-only-secret-test-only-secret-1234" and signs nothing outside the tests.
+# This matches that one line in that one commit, so any new secret is still reported.
+9939761b81a776bcb049b79c2491454707d370d0:api/src/test/resources/application-test.yaml:generic-api-key:10

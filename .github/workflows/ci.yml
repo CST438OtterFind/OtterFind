@@ -1,0 +1,167 @@
+# Runs on every pull request to main, and on main after each merge.
+# Branch protection only needs to require the last job, "CI passed".
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# A new push to a PR replaces that PR's unfinished run. Runs on main always finish.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    name: API detekt, tests and coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: gradle
+          cache-dependency-path: |
+            api/*.gradle.kts
+            api/gradle/wrapper/gradle-wrapper.properties
+      # Its own step so a style failure is easy to tell from a test failure. `check` then reuses this result.
+      - name: Detekt
+        run: ./gradlew detekt
+      # Includes the REST Assured and Testcontainers tests and the 70 percent floor on the service layer.
+      - name: Tests and coverage floor
+        run: ./gradlew check
+      - name: Upload test, coverage and detekt reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: api-reports
+          path: api/build/reports/
+          retention-days: 7
+
+  map-app:
+    name: Map app in app/
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test:coverage
+      # No test runs on Android here, so at least confirm its JavaScript bundle builds.
+      - name: Android bundle builds
+        run: npx expo export --platform android
+
+  root-app:
+    name: Expo app at the repo root
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Web build
+        run: npx expo export --platform web
+
+  image:
+    name: API image builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/build-push-action@v7
+        with:
+          context: ./api
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  e2e:
+    name: Playwright and axe
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      # compose.yaml requires .env, and the API won't start without a JWT secret. This one is thrown away.
+      - name: Create .env
+        run: |
+          cp .env.example .env
+          sed -i "s|^APP_JWT_SECRET_BASE64=.*|APP_JWT_SECRET_BASE64=$(openssl rand -base64 32)|" .env
+      - name: Start the API and Postgres
+        run: docker compose up --build --detach --wait --wait-timeout 300
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+        working-directory: app
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+        working-directory: app
+      - name: Run Playwright
+        run: npm run e2e
+        working-directory: app
+      - name: Show API logs
+        if: ${{ failure() }}
+        run: docker compose logs api
+      - name: Upload Playwright report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            app/playwright-report/
+            app/test-results/
+          retention-days: 7
+
+  secrets:
+    name: Gitleaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # The whole history, because a secret removed in a later commit is still leaked.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      # The CLI, because gitleaks-action needs a license key on organization repos.
+      - name: Scan for secrets
+        run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo --redact --verbose --no-banner
+
+  ci-passed:
+    name: CI passed
+    if: ${{ always() }}
+    needs: [api, map-app, root-app, image, e2e, secrets]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Fail unless every job passed
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Results: $RESULTS"
+          for result in $RESULTS; do
+            [ "$result" = success ] || exit 1
+          done
