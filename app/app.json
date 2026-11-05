@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "OtterFind",
+    "slug": "otterfind",
+    "version": "0.1.0",
+    "scheme": "otterfind",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "edu.csumb.otterfind"
+    },
+    "android": {
+      "package": "edu.csumb.otterfind",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "@maplibre/maplibre-react-native"
+    ]
+  }
+}
