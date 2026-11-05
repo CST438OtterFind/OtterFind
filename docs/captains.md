@@ -9,9 +9,9 @@
 | Sprint | Captain                   | Deputy                       | Release tag |
 |---|---------------------------|------------------------------|---|
 | 1 | `Daniel Martinez (@dmtz3471)` | `Tony Tan (@NotACatgirl)` | `v0.1.0` |
-| 2 | `<name> (@github)`        | `<name> (@github)`           | `v0.2.0` |
-| 3 | `<name> (@github)`        | `<name> (@github)`           | `v0.3.0` |
-| 4 | `<name> (@github)`        | `<name> (@github)`           | `v1.0.0` |
+| 2 | `<Tony Tan> (@NotaCatgirl)`        | `<Rian Hassett> (@rianhassett)`           | `v0.2.0` |
+| 3 | `<Rian Hassett> (@rianhassett)`        | `<Brandon Calvario> (@bcalvario-csumb)`           | `v0.3.0` |
+| 4 | `<Brandon Calvario> (@bcalvario-csumb)`        | `<Daniel Martinez> (@dmtz3471)`           | `v1.0.0` |
 
 ## Swaps
 
@@ -23,6 +23,6 @@ If a captain cannot serve their sprint, record the swap here before the sprint s
 
 ## Branch protection checklist (at each sprint change)
 
-- [ ] `main` push restriction lists only this sprint's captain and deputy
-- [ ] "Do not allow bypassing the above settings" is on
-- [ ] The previous captain's release is tagged and its notes are published
+- [x] `main` push restriction lists only this sprint's captain and deputy
+- [x] "Do not allow bypassing the above settings" is on
+- [x] The previous captain's release is tagged and its notes are published
