@@ -1,9 +1,22 @@
+
 import { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import ItemDetailsScreen from './screens/ItemDetailsScreen';
+import ReportItemScreen from './screens/ReportItemScreen';
+
 export default function App() {
   const [notice, setNotice] = useState('');
+  const [currentScreen, setCurrentScreen] = useState('home');
+
+  if (currentScreen === 'item-details') {
+    return <ItemDetailsScreen onBack={() => setCurrentScreen('home')} />;
+  }
+
+  if (currentScreen === 'report-item') {
+    return <ReportItemScreen onBack={() => setCurrentScreen('home')} />;
+  }
 
   return (
     <View style={styles.screen}>
@@ -24,6 +37,11 @@ export default function App() {
         </View>
         {notice ? <Text accessibilityLiveRegion="polite" style={styles.notice}>{notice}</Text> : null}
         <Text style={styles.note}>Sign in to browse and report campus finds.</Text>
+
+        <View style={styles.testButtons}>
+          <SignInButton label="Test Item Details" onPress={() => setCurrentScreen('item-details')} />
+          <SignInButton label="Test Report an Item" onPress={() => setCurrentScreen('report-item')} />
+        </View>
       </View>
     </View>
   );
@@ -82,4 +100,5 @@ const styles = StyleSheet.create({
   buttonLabel: { color: '#1C2A22', fontSize: 15, fontWeight: '600' },
   notice: { color: '#0B5D43', fontSize: 13, marginTop: 14, textAlign: 'center' },
   note: { color: '#77837B', fontSize: 13, lineHeight: 20, marginTop: 20, textAlign: 'center' },
+  testButtons: { gap: 12, marginTop: 20 },
 });
