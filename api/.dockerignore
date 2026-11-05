@@ -1,0 +1,10 @@
+# Docker build context for api/Dockerfile. Everything is left out except what the Dockerfile copies, so build
+# output, IDE files and local secrets can't reach the image. If you add a COPY line, add its path here too.
+*
+!build.gradle.kts
+!settings.gradle.kts
+!gradlew
+!gradle
+!src
+# bootJar doesn't build the tests.
+src/test
