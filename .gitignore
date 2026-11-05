@@ -14,3 +14,5 @@ dist/
 web-build/
 test-results/
 playwright-report/
+expo-env.d.ts
+*.tsbuildinfo
