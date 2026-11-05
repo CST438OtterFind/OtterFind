@@ -6,9 +6,10 @@ services:
     name: otterfind-api
     runtime: image
     plan: free
+    # Closest to the Supabase project (us-east-1). Render can't change this after creation.
+    region: virginia
     image:
-      # Replace <org> with the GitHub organization name, lowercase.
-      url: ghcr.io/<org>/otterfind-api:latest
+      url: ghcr.io/cst438otterfind/otterfind-api:latest
     healthCheckPath: /actuator/health
     envVars:
       # Supabase session pooler, JDBC form. See docs/runbook.md, "First-time setup".
@@ -40,5 +41,6 @@ services:
         sync: false
       - key: R2_SECRET_ACCESS_KEY
         sync: false
+      # TieredStopAtLevel=1 cut startup from about 8 minutes to 3 in a local test capped at the free plan's 0.1 CPU.
       - key: JAVA_TOOL_OPTIONS
-        value: "-XX:MaxRAMPercentage=75"
+        value: "-XX:MaxRAMPercentage=75 -XX:TieredStopAtLevel=1"
