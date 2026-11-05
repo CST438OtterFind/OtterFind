@@ -1,4 +1,4 @@
-# Team Agreement: `<team name>`
+# Team Agreement: `Group 7`
 
 [Back to the Project 03 guide](README.md#the-team-agreement)
 
@@ -11,13 +11,13 @@
 The course deadline is the outer limit: PR open by **2:00 AM Thursday**, reviewed and merged by
 **10:00 AM Thursday**. Our own deadline is earlier:
 
-- **Our PRs are open by:** `<day and time, e.g. Tuesday 9:00 PM>`
-- **Why that time works for us:** `<one sentence>`
+- **Our PRs are open by:** `Wednesday 11:59 PM`
+- **Why that time works for us:** `Gives us time to review and push pull requests.`
 
 ## Reviews
 
-- **A requested reviewer responds within:** `<e.g. 12 hours>`
-- **A PR that needs changes is updated within:** `<e.g. 12 hours>`
+- **A requested reviewer responds within:** `8 hours`
+- **A PR that needs changes is updated within:** `12 hours`
 
 ## Communication
 
@@ -30,4 +30,7 @@ Everyone on the team adds their name and GitHub username in the PR that commits 
 
 | Name | GitHub |
 |---|---|
-| | |
+| Daniel Martinez| dmtz3471|
+| Brandon Calvario| bcalvario-csumb|
+| Rian Hassett| rianhassett|
+| Tony Tan| NotaCatgirl|
