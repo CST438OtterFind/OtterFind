@@ -48,29 +48,8 @@ jobs:
           path: api/build/reports/
           retention-days: 7
 
-  map-app:
-    name: Map app in app/
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: app
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: app/package-lock.json
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm run test:coverage
-      # No test runs on Android here, so at least confirm its JavaScript bundle builds.
-      - name: Android bundle builds
-        run: npx expo export --platform android
-
-  root-app:
-    name: Expo app at the repo root
+  app:
+    name: Expo app typecheck, tests and bundles
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -80,9 +59,15 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: package-lock.json
+      # One install at the repo root covers the app and its map workspace in app/.
       - run: npm ci
-      - name: Web build
+      - run: npm run typecheck
+      - run: npm run test:coverage
+      - name: Web bundle builds
         run: npx expo export --platform web
+      # No test runs on Android here, so at least confirm its JavaScript bundle builds.
+      - name: Android bundle builds
+        run: npx expo export --platform android
 
   image:
     name: API image builds
@@ -109,24 +94,22 @@ jobs:
         run: |
           cp .env.example .env
           sed -i "s|^APP_JWT_SECRET_BASE64=.*|APP_JWT_SECRET_BASE64=$(openssl rand -base64 32)|" .env
+      # compose.e2e.yml adds the test account and test data the signed-in tests use.
       - name: Start the API and Postgres
-        run: docker compose up --build --detach --wait --wait-timeout 300
+        run: docker compose -f compose.yaml -f compose.e2e.yml up --build --detach --wait --wait-timeout 300
       - uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: app/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm ci
-        working-directory: app
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-        working-directory: app
       - name: Run Playwright
         run: npm run e2e
-        working-directory: app
       - name: Show API logs
         if: ${{ failure() }}
-        run: docker compose logs api
+        run: docker compose -f compose.yaml -f compose.e2e.yml logs api
       - name: Upload Playwright report
         if: ${{ failure() }}
         uses: actions/upload-artifact@v7
@@ -153,7 +136,7 @@ jobs:
   ci-passed:
     name: CI passed
     if: ${{ always() }}
-    needs: [api, map-app, root-app, image, e2e, secrets]
+    needs: [api, app, image, e2e, secrets]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
