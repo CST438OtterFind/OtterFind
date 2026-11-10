@@ -1,8 +1,12 @@
 # Entity relationship diagram
 
 Based on the ERD in `docs/prd.md` (PR #6), with the changes below so the tables can hold what the
-user stories require. **Only `BUILDING` exists so far** (`V2__buildings.sql`). The rest is the plan,
-and each table gets its migration when its story is built.
+user stories require. **`BUILDING`, `USER`, `IDENTITY` and `ITEM_LISTING` exist so far**
+(`V2__buildings.sql`, `V3__users.sql`, `V4__item_listings.sql`). The rest is the plan, and each table
+gets its migration when its story is built.
+
+A map pin isn't its own table. It's the `latitude` and `longitude` on an `ITEM_LISTING` or `SIGHTING`.
+A listing is in one building, so `building_id` is the whole link between the two tables.
 
 ```mermaid
 erDiagram
@@ -118,5 +122,6 @@ behind.
 
 - **Conversations and messages after account deletion:** deleting one user's messages leaves the
   other person with half a conversation. Decide this before building PRD-6.
-- **`BUILDING` holds outdoor places too:** PRD-4 requires a building, so an item lost on a lawn or in
-  a parking lot needs a row like "Main Quad". These aren't seeded yet.
+- **`BUILDING` holds outdoor places too:** PRD-4 requires a building, so an item lost outdoors uses the
+  nearest one, with the floor left blank. Rows like "Main Quad" can be added later if that isn't
+  precise enough.
