@@ -1,5 +1,8 @@
+import type { ExpressionSpecification } from "maplibre-gl";
 import type { Building } from "@/lib/api";
+import { type AgeBand, ageBand } from "./age";
 import { CAMPUS_ZONES, type Pin, type Zone } from "./campus";
+import type { MapListing } from "./CampusMap.types";
 
 /** The base map. OpenFreeMap needs no API key or sign-up. It offers no uptime guarantee, so this can be swapped. */
 export const MAP_STYLE_URL = process.env.EXPO_PUBLIC_MAP_STYLE_URL || "https://tiles.openfreemap.org/styles/liberty";
@@ -17,6 +20,23 @@ export const MAP_COLORS = {
 } as const;
 
 export const MASK_OPACITY = 0.45;
+
+/**
+ * Saved pins are colored by age. Color must never be the only signal, so whatever lists the pins beside the
+ * map should spell the age out too.
+ */
+export const LISTING_AGE_COLORS: Record<AgeBand, string> = { today: "#E8590C", week: "#1971C2", older: "#6C757D" };
+
+/** Tells the map to read each saved pin's color from its age group. */
+export const LISTING_COLOR: ExpressionSpecification = [
+  "match",
+  ["get", "band"],
+  "today",
+  LISTING_AGE_COLORS.today,
+  "week",
+  LISTING_AGE_COLORS.week,
+  LISTING_AGE_COLORS.older,
+];
 
 /** Buildings as GeoJSON points. GeoJSON puts longitude first. */
 export function buildingsToGeoJson(buildings: Building[]): GeoJSON.FeatureCollection<GeoJSON.Point> {
@@ -37,6 +57,24 @@ export function pinToGeoJson(pin: Pin | null): GeoJSON.FeatureCollection<GeoJSON
     features: pin
       ? [{ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [pin.longitude, pin.latitude] } }]
       : [],
+  };
+}
+
+/** Saved listings as GeoJSON points, each with its age group. Listings with no pin are left out. */
+export function listingsToGeoJson(listings: MapListing[], now: number): GeoJSON.FeatureCollection<GeoJSON.Point> {
+  return {
+    type: "FeatureCollection",
+    features: listings.flatMap((listing) =>
+      listing.latitude === null || listing.longitude === null
+        ? []
+        : [
+            {
+              type: "Feature" as const,
+              properties: { id: listing.id, band: ageBand(listing.createdAt, now) },
+              geometry: { type: "Point" as const, coordinates: [listing.longitude, listing.latitude] },
+            },
+          ],
+    ),
   };
 }
 
