@@ -1,6 +1,7 @@
 # OtterFind
 
-The Expo app lives at the repository root. The Spring Boot API remains in `api/`.
+The Expo app lives at the repository root. The Spring Boot API remains in `api/`. The map and the app's routes
+are in `app/`, which shares one install with the root through npm workspaces.
 
 ## Run the app
 
@@ -68,4 +69,21 @@ The build creates an `android/` folder. Git ignores it, so don't commit it; it's
 **On a physical phone,** turn on USB debugging, plug the phone in, and run
 `npx expo run:android --device`.
 
-The Google and GitHub buttons are UI placeholders. OAuth and API requests are not connected yet.
+The Google and GitHub buttons are UI placeholders. OAuth isn't connected yet. **View campus map** opens the map,
+which loads its buildings from the API, so start the API first:
+
+```sh
+cp .env.example .env     # first time only, then set APP_JWT_SECRET_BASE64 as the file says
+docker compose up --build
+```
+
+## Run the tests
+
+```sh
+cd api && ./gradlew check && cd ..   # API tests, detekt and the coverage floor. Needs Docker.
+npm run typecheck
+npm run test:coverage                # Client logic
+
+npx playwright install chromium      # first time only
+npm run e2e                          # Needs the API above running
+```
