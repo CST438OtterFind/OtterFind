@@ -77,7 +77,7 @@ class SecurityConfigTest {
 
     @Test
     fun `a valid token gets past security, so an unknown path is a 404 and not a 401`() {
-        val response = request().header("Authorization", "Bearer ${token()}").get("/api/items")
+        val response = request().header("Authorization", "Bearer ${token()}").get("/api/unknown-endpoint")
         assertEquals(404, response.statusCode())
     }
 
