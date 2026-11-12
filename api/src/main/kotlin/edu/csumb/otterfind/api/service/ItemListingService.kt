@@ -39,6 +39,12 @@ class ItemListingService(
     private val itemRepository: ItemListingRepository,
     private val buildingRepository: BuildingRepository
 ) {
+        companion object {
+        private const val MIN_ITEM_NAME_LENGTH = 4
+        private const val MAX_ITEM_NAME_LENGTH = 150
+        private const val MIN_COLOR_LENGTH = 1
+        private const val MAX_COLOR_LENGTH = 50
+    }
     private val allowedCategories = setOf(
         "PHONE",
         "LAPTOP",
@@ -73,13 +79,13 @@ class ItemListingService(
         val name = request.itemName.trim()
         val color = request.color.trim()
 
-        if (name.length !in 4..150) {
+        if (name.length !in MIN_ITEM_NAME_LENGTH..MAX_ITEM_NAME_LENGTH) {
             badRequest(
                 "Item name must be 4 to 150 characters"
             )
         }
 
-        if (color.length !in 1..50) {
+        if (color.length !in MIN_COLOR_LENGTH..MAX_COLOR_LENGTH) {
             badRequest(
                 "Color must be 1 to 50 characters"
             )

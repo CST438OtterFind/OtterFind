@@ -29,7 +29,7 @@ class ItemValidationExceptionHandler {
             request.request.requestURI
         )
 
-        if (status.value() == 400) {
+        if (status.value() == HttpStatus.BAD_REQUEST.value()) {
             problem.setProperty(
                 "errors",
                 listOf(
