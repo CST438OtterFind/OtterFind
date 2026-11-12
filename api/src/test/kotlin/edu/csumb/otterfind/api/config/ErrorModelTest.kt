@@ -17,7 +17,10 @@ import java.util.Base64
 import java.util.Date
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.springframework.test.context.TestPropertySource
 
+// Alongside @ActiveProfiles("test")
+@TestPropertySource(properties = ["spring.flyway.enabled=false"])
 /** Checks the promises in docs/error-model.md. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")

@@ -1,5 +1,6 @@
 package edu.csumb.otterfind.api.config
 
+// Alongside @ActiveProfiles("test")
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.JWSHeader
 import com.nimbusds.jose.crypto.MACSigner
@@ -8,6 +9,7 @@ import com.nimbusds.jwt.SignedJWT
 import io.restassured.RestAssured.given
 import io.restassured.specification.RequestSpecification
 import org.junit.jupiter.api.Test
+import org.springframework.test.context.TestPropertySource
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
@@ -19,6 +21,8 @@ import java.util.Date
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+
+@TestPropertySource(properties = ["spring.flyway.enabled=false"])
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
