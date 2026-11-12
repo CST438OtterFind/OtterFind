@@ -38,6 +38,204 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /api/items/{itemId}/conversations:
+    post:
+      operationId: startConversation
+      summary: Start a conversation with the person who posted an item, or reopen it
+      description: >
+        For PRD-6. The caller and the item's poster are the conversation's two people. Each person
+        has at most one conversation per item, so asking again returns the same conversation with
+        200 instead of creating a second one. You can't start a conversation about your own post.
+      tags: [Messages]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "201":
+          description: A new conversation, with no messages yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+        "200":
+          description: The caller already has a conversation about this item, so it's returned instead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+        "400":
+          description: The item is the caller's own post
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: No valid token
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: No item has this ID
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /api/conversations:
+    get:
+      operationId: listConversations
+      summary: List the signed-in user's conversations, most recent activity first
+      description: >
+        For the inbox. Only conversations the caller is in, each with its item, the other person and
+        the latest message.
+      tags: [Messages]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: The caller's conversations, sorted by `lastActivityAt`, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+              example:
+                - id: 7
+                  item:
+                    id: 12
+                    itemName: Grey tabby cat
+                    listingType: LOST
+                    buildingName: Library
+                  otherParticipant:
+                    id: 4
+                    displayName: Maya R.
+                  lastMessage:
+                    id: 31
+                    conversationId: 7
+                    senderId: 4
+                    sentByMe: false
+                    text: Near the bike racks by the main entrance.
+                    sentAt: "2026-11-12T20:07:00Z"
+                  createdAt: "2026-11-12T20:04:00Z"
+                  lastActivityAt: "2026-11-12T20:07:00Z"
+        "401":
+          description: No valid token
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /api/conversations/{conversationId}:
+    get:
+      operationId: getConversation
+      summary: Load one conversation's header details
+      description: >
+        Lets a conversation screen opened from a link show who it's with and which item it's about.
+        Returns 404, not 403, when the caller isn't in the conversation, so nobody can tell which
+        conversation IDs exist.
+      tags: [Messages]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+      responses:
+        "200":
+          description: The conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+        "401":
+          description: No valid token
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: No conversation has this ID, or the caller isn't in it
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /api/conversations/{conversationId}/messages:
+    get:
+      operationId: listMessages
+      summary: Load a conversation's messages, oldest first
+      description: Returns 404, not 403, when the caller isn't in the conversation.
+      tags: [Messages]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+      responses:
+        "200":
+          description: Every message in the conversation, oldest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+        "401":
+          description: No valid token
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: No conversation has this ID, or the caller isn't in it
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    post:
+      operationId: sendMessage
+      summary: Send a message in a conversation
+      description: >
+        The sender is always the caller, taken from the token and never from the request body.
+        Returns 404, not 403, when the caller isn't in the conversation.
+      tags: [Messages]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageRequest"
+      responses:
+        "201":
+          description: The message as stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "400":
+          description: The text is empty or longer than 1000 characters after trimming
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: No valid token
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: No conversation has this ID, or the caller isn't in it
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 components:
   schemas:
     Building:
@@ -77,3 +275,106 @@ components:
         instance:
           type: string
           format: uri-reference
+    Conversation:
+      description: >
+        One person asking about one item, and the item's poster. Seen from the caller's side, so
+        `otherParticipant` is always the person who isn't the caller.
+      type: object
+      required: [id, item, otherParticipant, lastMessage, createdAt, lastActivityAt]
+      properties:
+        id:
+          type: integer
+          format: int64
+        item:
+          $ref: "#/components/schemas/ConversationItem"
+        otherParticipant:
+          $ref: "#/components/schemas/Participant"
+        lastMessage:
+          description: The newest message, or null if nobody has written yet
+          oneOf:
+            - $ref: "#/components/schemas/Message"
+            - type: "null"
+        createdAt:
+          type: string
+          format: date-time
+        lastActivityAt:
+          description: When the newest message was sent, or `createdAt` if there are no messages
+          type: string
+          format: date-time
+    ConversationItem:
+      description: The item a conversation is about, as a short summary of its listing
+      type: object
+      required: [id, itemName, listingType, buildingName]
+      properties:
+        id:
+          type: integer
+          format: int64
+        itemName:
+          type: string
+          examples: [Grey tabby cat]
+        listingType:
+          type: string
+          enum: [LOST, FOUND]
+        buildingName:
+          type: [string, "null"]
+          examples: [Library]
+    Participant:
+      description: A person in a conversation. Only what the other person needs to see.
+      type: object
+      required: [id, displayName]
+      properties:
+        id:
+          type: integer
+          format: int64
+        displayName:
+          type: string
+          examples: [Maya R.]
+    Message:
+      type: object
+      required: [id, conversationId, senderId, sentByMe, text, sentAt]
+      properties:
+        id:
+          type: integer
+          format: int64
+        conversationId:
+          type: integer
+          format: int64
+        senderId:
+          type: integer
+          format: int64
+        sentByMe:
+          description: True when the caller sent it, so a client can place the message without knowing its own user ID
+          type: boolean
+        text:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        sentAt:
+          type: string
+          format: date-time
+    SendMessageRequest:
+      type: object
+      required: [text]
+      properties:
+        text:
+          description: Trimmed before it's checked, so it needs 1 to 1000 characters that aren't just spaces
+          type: string
+          minLength: 1
+          maxLength: 1000
+          examples: [I think I saw your cat by the library]
+  parameters:
+    ConversationId:
+      name: conversationId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+  securitySchemes:
+    bearerAuth:
+      description: >
+        The API's own access token (docs/appendix_i_auth.md, section 3). Its subject (`sub`) is the
+        user's ID, which is how the API knows who's calling.
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
