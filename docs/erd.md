@@ -1,8 +1,8 @@
 # Entity relationship diagram
 
 Based on the ERD in `docs/prd.md` (PR #6), with the changes below so the tables can hold what the
-user stories require. **Only `BUILDING` (`V2__buildings.sql`) and `USER` (`V3__users.sql`) exist so
-far.** The rest is the plan, and each table gets its migration when its story is built.
+user stories require. **Only `BUILDING` exists so far** (`V2__buildings.sql`). The rest is the plan,
+and each table gets its migration when its story is built.
 
 ```mermaid
 erDiagram
@@ -13,7 +13,8 @@ erDiagram
     BUILDING ||--o{ SIGHTING : "seen in"
     ITEM_LISTING ||--o{ SIGHTING : has
     ITEM_LISTING ||--o{ CONVERSATION : discusses
-    USER ||--o{ CONVERSATION : starts
+    CONVERSATION ||--o{ CONVERSATION_PARTICIPANT : includes
+    USER ||--o{ CONVERSATION_PARTICIPANT : joins
     CONVERSATION ||--o{ MESSAGE : contains
     USER ||--o{ MESSAGE : sends
 
@@ -72,17 +73,21 @@ erDiagram
 
     CONVERSATION {
         long id PK
-        long item_listing_id FK "unique together with requester_id"
-        long requester_id FK "the person asking, never the poster"
+        long item_listing_id FK
         datetime created_at
+    }
+
+    CONVERSATION_PARTICIPANT {
+        long conversation_id PK, FK
+        long user_id PK, FK
     }
 
     MESSAGE {
         long id PK
         long conversation_id FK
-        long sender_id FK "the requester or the item's poster"
-        string text "1 to 1000 characters after trimming"
-        string image_url "optional, once uploads exist"
+        long sender_id FK
+        string text
+        string image_url
         datetime sent_at
     }
 ```
@@ -96,7 +101,6 @@ erDiagram
 | Added `ITEM_LISTING.floor` and `last_seen_at` | PRD-4 posts a floor and a last-seen time |
 | Added `IDENTITY` | Appendix I, section 3.5: one row per provider login, keyed by provider ID and never by email |
 | `latitude` and `longitude` are `double` and optional on `ITEM_LISTING` | PRD-5 covers an item with no map pin. Store both or neither |
-| `CONVERSATION.requester_id` replaces `CONVERSATION_PARTICIPANT` | A conversation is always between the person asking and the item's poster, so `requester_id` and the listing's `owner_id` already name both people. That's one less table to keep in step, and `UNIQUE (item_listing_id, requester_id)` stops duplicate conversations |
 
 ## When a row is deleted
 
@@ -105,16 +109,14 @@ behind.
 
 | Deleted | Also deleted | Blocked? |
 |---|---|---|
-| `USER` | Their identities, listings and sightings, and every conversation they're in, with its messages | No |
+| `USER` | Their identities, listings, sightings, participants and messages | No |
 | `ITEM_LISTING` | Its sightings and conversations | No |
-| `CONVERSATION` | Its messages | No |
+| `CONVERSATION` | Its participants and messages | No |
 | `BUILDING` | Nothing | Yes, while a listing or sighting uses it |
 
 ## Decisions for the team
 
-- **Conversations and messages after account deletion (proposed with PRD-6):** deleting an account
-  deletes every conversation that person is in, for both people, instead of leaving the other person
-  half a conversation. Each conversation goes with its requester (`requester_id`) or with the item it's
-  about (the poster's listings), so cascading deletes cover it with no extra code.
+- **Conversations and messages after account deletion:** deleting one user's messages leaves the
+  other person with half a conversation. Decide this before building PRD-6.
 - **`BUILDING` holds outdoor places too:** PRD-4 requires a building, so an item lost on a lawn or in
   a parking lot needs a row like "Main Quad". These aren't seeded yet.
