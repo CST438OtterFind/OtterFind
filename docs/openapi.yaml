@@ -9,6 +9,72 @@ servers:
   - url: http://localhost:8080
     description: Local stack from `docker compose up`
 paths:
+    /api/items:
+    get:
+      operationId: listItems
+      summary: List item reports
+      tags: [Items]
+      responses:
+        "200":
+          description: Item reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ItemListing"
+        "401":
+          $ref: "#/components/responses/ProblemResponse"
+
+    post:
+      operationId: createItem
+      summary: Create a lost or found item report
+      tags: [Items]
+      description: >
+        Requires an authenticated user. The reporter ID
+        is determined by the server, not the request body.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateItemRequest"
+      responses:
+        "201":
+          description: Created item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemListing"
+        "400":
+          $ref: "#/components/responses/ProblemResponse"
+        "401":
+          $ref: "#/components/responses/ProblemResponse"
+
+  /api/items/{id}:
+    get:
+      operationId: getItem
+      summary: Retrieve item details
+      tags: [Items]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Item details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemListing"
+        "401":
+          $ref: "#/components/responses/ProblemResponse"
+        "404":
+          $ref: "#/components/responses/ProblemResponse"
+
   /api/buildings:
     get:
       operationId: listBuildings
@@ -237,7 +303,91 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  responses:
+    ProblemResponse:
+      description: Request failed
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
   schemas:
+      CreateItemRequest:
+      type: object
+      required: [itemName, category, color, isOwner]
+      properties:
+        itemName:
+          type: string
+          minLength: 4
+          maxLength: 150
+        category:
+          type: string
+          enum:
+            - PHONE
+            - LAPTOP
+            - WALLET
+            - PETS
+            - BACKPACK
+            - CHARGER
+            - PERSONAL_ITEM
+            - MISC
+        color:
+          type: string
+          minLength: 1
+          maxLength: 50
+        isOwner:
+          type: boolean
+        buildingId:
+          type: [integer, "null"]
+          format: int64
+        description:
+          type: string
+          default: ""
+
+    ItemListing:
+      type: object
+      required:
+        - id
+        - itemName
+        - category
+        - color
+        - isOwner
+        - listingType
+        - description
+        - status
+        - createdAt
+      properties:
+        id:
+          type: integer
+          format: int64
+        itemName:
+          type: string
+        category:
+          type: string
+        color:
+          type: string
+        isOwner:
+          type: boolean
+        listingType:
+          type: string
+          enum: [LOST, FOUND]
+        buildingId:
+          type: [integer, "null"]
+          format: int64
+        buildingName:
+          type: [string, "null"]
+        latitude:
+          type: [number, "null"]
+          format: double
+        longitude:
+          type: [number, "null"]
+          format: double
+        description:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
     Building:
       type: object
       required: [id, name, latitude, longitude]
