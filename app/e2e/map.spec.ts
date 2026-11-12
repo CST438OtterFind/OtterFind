@@ -1,26 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
+import { stubBaseMap } from "./support";
 
 /**
- * Walks the Sprint 1 map through the real web client and the real API, so `docker compose up` must be
+ * Walks the campus map through the real web client and the real API, signed out, so the API must be
  * running. The base map is stubbed, so a slow or down tile provider can't fail these tests.
  */
-const STUB_STYLE = {
-  version: 8,
-  sources: {
-    osm: {
-      type: "geojson",
-      data: { type: "FeatureCollection", features: [] },
-      attribution: "Data from OpenStreetMap",
-    },
-  },
-  layers: [
-    { id: "background", type: "background", paint: { "background-color": "#F7F5F0" } },
-    // MapLibre only credits a source that a layer draws.
-    { id: "osm", type: "circle", source: "osm" },
-  ],
-};
-
 async function canvasBox(page: Page) {
   const box = await page.locator("canvas.maplibregl-canvas").boundingBox();
   if (!box) throw new Error("The map canvas isn't on screen");
@@ -58,8 +43,8 @@ test.beforeEach(async ({ page }) => {
     if (message.type() === "error" && !message.text().startsWith("Failed to load resource")) errors.push(message.text());
   });
 
-  await page.route("https://tiles.openfreemap.org/**", (route) => route.fulfill({ json: STUB_STYLE }));
-  await page.goto("/");
+  await stubBaseMap(page);
+  await page.goto("/map");
   await expect(page.getByRole("button", { name: "Library", exact: true })).toBeVisible({ timeout: 30_000 });
   // The map only reacts to clicks once its style has loaded and its credit is drawn.
   await expect(page.locator(".maplibregl-ctrl-attrib")).toContainText("OpenStreetMap", { timeout: 30_000 });
@@ -76,6 +61,14 @@ test("shows the campus map with buildings from the API", async ({ page }) => {
 
 test("has a page title", async ({ page }) => {
   await expect(page).toHaveTitle(/OtterFind/);
+});
+
+test("the home page links to the campus map", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "View campus map" }).click();
+
+  await expect(page).toHaveURL(/\/map$/);
+  await expect(page.getByRole("button", { name: "Library", exact: true })).toBeVisible();
 });
 
 test("choosing a building drops a pin on it", async ({ page }) => {
@@ -170,6 +163,22 @@ test("a failed API call shows the problem, and retrying recovers", async ({ page
   await page.getByRole("button", { name: "Try again" }).click();
 
   await expect(page.getByRole("button", { name: "Library", exact: true })).toBeVisible();
+});
+
+test("without WebGL2, the page explains and the building list still works", async ({ page }) => {
+  await page.addInitScript(() => {
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, type: string, ...rest: unknown[]) {
+      return type === "webgl2" ? null : (getContext as (...args: unknown[]) => unknown).call(this, type, ...rest);
+    } as typeof getContext;
+  });
+  await page.goto("/map");
+
+  await expect(page.getByTestId("map-unavailable")).toContainText("WebGL2");
+  await page.getByRole("button", { name: "Library", exact: true }).click();
+  await expect(page.getByTestId("pin-summary")).toContainText("At Library");
+  // MapLibre reports the failure as it gives up. The page handled it, so it doesn't count here.
+  pageErrors.set(page, []);
 });
 
 test.describe("on a phone-sized screen", () => {

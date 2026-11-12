@@ -1,6 +1,26 @@
-import { MapScreen } from "@/features/map/MapScreen";
+import { StyleSheet, View } from "react-native";
+import { Link } from "expo-router";
+import App from "../../../App";
 
-/** The app opens on the campus map for now. Once sign-in exists, PRD-1 sends signed-in users to the feed. */
+/** The sign-in page in the root `App.tsx`, with a link to the campus map. Once sign-in exists, PRD-1 sends signed-in users to the feed. */
 export default function Index() {
-  return <MapScreen />;
+  return (
+    <View style={styles.screen}>
+      <View style={styles.app}>
+        <App />
+      </View>
+      <View style={styles.bar}>
+        <Link href="/map" style={styles.link}>
+          View campus map
+        </Link>
+      </View>
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  app: { flex: 1 },
+  bar: { backgroundColor: "#112E51", flexDirection: "row", justifyContent: "center", padding: 14 },
+  link: { color: "#FFFFFF", fontSize: 14, fontWeight: "600" },
+});

@@ -1,6 +1,7 @@
 import type { Building } from "@/lib/api";
 import { CAMPUS_ZONES } from "./campus";
-import { buildingsToGeoJson, offCampusMask, pinToGeoJson } from "./mapData";
+import type { MapListing } from "./CampusMap.types";
+import { buildingsToGeoJson, listingsToGeoJson, offCampusMask, pinToGeoJson } from "./mapData";
 
 const library: Building = { id: 25, name: "Library", latitude: 36.65231, longitude: -121.79614 };
 
@@ -53,5 +54,37 @@ describe("offCampusMask", () => {
     const [zone] = CAMPUS_ZONES;
     expect(hole).toContainEqual([zone.west, zone.south]);
     expect(hole).toContainEqual([zone.east, zone.north]);
+  });
+});
+
+describe("listingsToGeoJson", () => {
+  const now = Date.parse("2026-11-09T20:00:00Z");
+  const listing = (id: number, createdAt: string, latitude: number | null = 36.65231, longitude: number | null = -121.79614): MapListing => ({
+    id,
+    createdAt,
+    latitude,
+    longitude,
+  });
+
+  it("puts longitude first and keeps the id, so a tapped pin can be matched to its listing", () => {
+    const [feature] = listingsToGeoJson([listing(7, "2026-11-09T19:00:00Z")], now).features;
+    expect(feature.geometry).toEqual({ type: "Point", coordinates: [-121.79614, 36.65231] });
+    expect(feature.properties?.id).toBe(7);
+  });
+
+  it("groups pins by age, for their color", () => {
+    const features = listingsToGeoJson(
+      [listing(1, "2026-11-09T19:00:00Z"), listing(2, "2026-11-06T20:00:00Z"), listing(3, "2026-10-01T20:00:00Z")],
+      now,
+    ).features;
+    expect(features.map((feature) => feature.properties?.band)).toEqual(["today", "week", "older"]);
+  });
+
+  it("leaves out a listing with no pin", () => {
+    expect(listingsToGeoJson([listing(1, "2026-11-09T19:00:00Z", null, null)], now).features).toEqual([]);
+  });
+
+  it("draws nothing while there are no listings yet", () => {
+    expect(listingsToGeoJson([], now).features).toEqual([]);
   });
 });

@@ -23,11 +23,9 @@ updates:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
 
-  # The Expo app at the repo root and the map app in app/.
+  # The Expo app. One lockfile at the repo root covers the app/ workspace too.
   - package-ecosystem: npm
-    directories:
-      - /
-      - /app
+    directory: /
     schedule:
       interval: weekly
       day: monday

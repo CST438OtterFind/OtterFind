@@ -7,8 +7,30 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "android": {
-      "package": "edu.csumb.otterfind"
+      "package": "edu.csumb.otterfind",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./app/assets/android-icon-foreground.png",
+        "backgroundImage": "./app/assets/android-icon-background.png",
+        "monochromeImage": "./app/assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
     },
-    "web": {}
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./app/assets/favicon.png"
+    },
+    "icon": "./app/assets/icon.png",
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "root": "./app/src/app"
+        }
+      ],
+      "expo-status-bar",
+      "@maplibre/maplibre-react-native"
+    ]
   }
 }

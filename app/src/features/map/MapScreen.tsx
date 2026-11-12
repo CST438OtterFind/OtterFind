@@ -2,9 +2,10 @@ import { useCallback, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Building } from "@/lib/api";
+import { useNow } from "@/lib/useNow";
 import { type Pin, pinFromBuilding, pinFromTap } from "./campus";
 import { CampusMap } from "./CampusMap";
-import type { FocusRequest } from "./CampusMap.types";
+import type { FocusRequest, MapListing } from "./CampusMap.types";
 import { MapPanel } from "./MapPanel";
 import { useBuildings } from "./useBuildings";
 
@@ -12,11 +13,19 @@ import { useBuildings } from "./useBuildings";
 const WIDE_LAYOUT_MIN_WIDTH = 768;
 
 /**
- * The Sprint 1 map: a campus-limited map, its buildings, and a test pin. Pins aren't saved yet. The
+ * PLACEHOLDER until the listings work (#12, #16) lands. Replace it with the active listings, and the map draws
+ * each one's pin, colored by age. Any listing with the fields in `MapListing` fits. Then pass `onPressListing`
+ * to `CampusMap` so a pin opens its listing.
+ */
+const NO_LISTINGS_YET: MapListing[] = [];
+
+/**
+ * The campus map: a campus-limited map, its buildings, and a test pin. Pins aren't saved yet. The
  * "post a lost item" form in PRD-4 will reuse this pin choice.
  */
 export function MapScreen() {
   const { buildings, status, errorMessage, retry } = useBuildings();
+  const now = useNow();
   const [pin, setPin] = useState<Pin | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [focus, setFocus] = useState<FocusRequest | null>(null);
@@ -66,7 +75,15 @@ export function MapScreen() {
       </View>
       <View style={[styles.body, wide && styles.bodyWide]}>
         <View style={styles.map}>
-          <CampusMap buildings={buildings} pin={pin} focus={focus} onPressMap={tapMap} onPressBuilding={chooseBuilding} />
+          <CampusMap
+            buildings={buildings}
+            pin={pin}
+            focus={focus}
+            listings={NO_LISTINGS_YET}
+            now={now}
+            onPressMap={tapMap}
+            onPressBuilding={chooseBuilding}
+          />
         </View>
         <MapPanel
           buildings={buildings}
