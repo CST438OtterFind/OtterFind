@@ -16,8 +16,7 @@ erDiagram
     BUILDING ||--o{ SIGHTING : "seen in"
     ITEM_LISTING ||--o{ SIGHTING : has
     ITEM_LISTING ||--o{ CONVERSATION : discusses
-    CONVERSATION ||--o{ CONVERSATION_PARTICIPANT : includes
-    USER ||--o{ CONVERSATION_PARTICIPANT : joins
+    USER ||--o{ CONVERSATION : starts
     CONVERSATION ||--o{ MESSAGE : contains
     USER ||--o{ MESSAGE : sends
 
@@ -70,21 +69,17 @@ erDiagram
 
     CONVERSATION {
         long id PK
-        long item_listing_id FK
+        long item_listing_id FK "unique together with requester_id"
+        long requester_id FK "the person asking, never the poster"
         datetime created_at
-    }
-
-    CONVERSATION_PARTICIPANT {
-        long conversation_id PK, FK
-        long user_id PK, FK
     }
 
     MESSAGE {
         long id PK
         long conversation_id FK
-        long sender_id FK
-        string text
-        string image_url
+        long sender_id FK "the requester or the item's poster"
+        string text "1 to 1000 characters after trimming"
+        string image_url "optional, once uploads exist"
         datetime sent_at
     }
 ```
@@ -98,6 +93,7 @@ erDiagram
 | Added `ITEM_LISTING.floor` and `last_seen_at` | PRD-4 posts a floor and a last-seen time |
 | Added `USER.oauth_provider` and `oauth_provider_user_id`, unique as a pair | Appendix I, section 3.5: sign-in finds the account by provider ID, never by email. Each account has one sign-in provider, so the linking stretch goal would need its own table |
 | `latitude` and `longitude` are `double` and optional on `ITEM_LISTING` | PRD-5 covers an item with no map pin. Store both or neither |
+| `CONVERSATION.requester_id` replaces `CONVERSATION_PARTICIPANT` | A conversation is always between the person asking and the item's poster, so `requester_id` and the listing's `owner_id` already name both people. That's one less table to keep in step, and `UNIQUE (item_listing_id, requester_id)` stops duplicate conversations |
 
 ## When a row is deleted
 
@@ -108,13 +104,15 @@ behind.
 |---|---|---|
 | `USER` | Their listings, sightings, participants and messages | No |
 | `ITEM_LISTING` | Its sightings and conversations | No |
-| `CONVERSATION` | Its participants and messages | No |
+| `CONVERSATION` | Its messages | No |
 | `BUILDING` | Nothing | Yes, while a listing or sighting uses it |
 
 ## Decisions for the team
 
-- **Conversations and messages after account deletion:** deleting one user's messages leaves the
-  other person with half a conversation. Decide this before building PRD-6.
+- **Conversations and messages after account deletion (proposed with PRD-6):** deleting an account
+  deletes every conversation that person is in, for both people, instead of leaving the other person
+  half a conversation. Each conversation goes with its requester (`requester_id`) or with the item it's
+  about (the poster's listings), so cascading deletes cover it with no extra code.
 - **`BUILDING` holds outdoor places too:** PRD-4 requires a building, so an item lost outdoors uses the
   nearest one, with the floor left blank. Rows like "Main Quad" can be added later if that isn't
   precise enough.
