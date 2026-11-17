@@ -9,6 +9,9 @@
 Check it with `curl http://localhost:8080/actuator/health`. Compose always points the API at its own
 Postgres container, even if `.env` holds other database values.
 
+To add the test account and test data, use `docker compose -f compose.yaml -f compose.e2e.yml up --build`. Never
+set `SPRING_PROFILES_ACTIVE=e2e` on Render. The API refuses to start with that profile and a non-local database.
+
 ## First-time setup
 
 Do these in order. Each step needs the one before it.

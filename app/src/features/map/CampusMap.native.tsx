@@ -1,24 +1,29 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { Camera, type CameraRef, GeoJSONSource, Layer, Map as MapLibreMap } from "@maplibre/maplibre-react-native";
 import { CAMPUS_BOUNDS } from "./campus";
 import type { CampusMapProps } from "./CampusMap.types";
-import { FOCUS_ZOOM, MAP_COLORS, MAP_STYLE_URL, MASK_OPACITY, buildingsToGeoJson, offCampusMask, pinToGeoJson } from "./mapData";
+import { FOCUS_ZOOM, LISTING_COLOR, MAP_COLORS, MAP_STYLE_URL, MASK_OPACITY, buildingsToGeoJson, listingsToGeoJson, offCampusMask, pinToGeoJson } from "./mapData";
 
 const { west, south, east, north } = CAMPUS_BOUNDS;
 const CAMPUS: [number, number, number, number] = [west, south, east, north];
 
 /** The campus map on Android, drawn by MapLibre Native. */
-export function CampusMap({ buildings, pin, focus, onPressMap, onPressBuilding }: CampusMapProps) {
+export function CampusMap({ buildings, pin, focus, listings, now, onPressMap, onPressBuilding, onPressListing }: CampusMapProps) {
   const camera = useRef<CameraRef>(null);
+  // The camera can't animate until it's ready, so a map that opens on a pin has to start there.
+  const [initialViewState] = useState(() =>
+    focus?.kind === "point" ? { center: [focus.longitude, focus.latitude] as [number, number], zoom: FOCUS_ZOOM } : { bounds: CAMPUS },
+  );
   const mask = useMemo(() => offCampusMask(), []);
   const buildingData = useMemo(() => buildingsToGeoJson(buildings), [buildings]);
+  const listingData = useMemo(() => listingsToGeoJson(listings, now), [listings, now]);
   const pinData = useMemo(() => pinToGeoJson(pin), [pin]);
 
   useEffect(() => {
     if (!focus) return;
     if (focus.kind === "campus") camera.current?.fitBounds(CAMPUS, { duration: 500 });
-    else camera.current?.easeTo({ center: [focus.longitude, focus.latitude], zoom: FOCUS_ZOOM, duration: 500 });
+    else camera.current?.easeTo({ center: [focus.longitude, focus.latitude], ...(focus.keepZoom ? {} : { zoom: FOCUS_ZOOM }), duration: 500 });
   }, [focus]);
 
   return (
@@ -33,7 +38,7 @@ export function CampusMap({ buildings, pin, focus, onPressMap, onPressBuilding }
         }}
       >
         {/* On Android, maxBounds limits only the map's center, so the mask below shows the real edge. */}
-        <Camera initialViewState={{ bounds: CAMPUS }} ref={camera} minZoom={13.5} maxZoom={19} maxBounds={CAMPUS} />
+        <Camera initialViewState={initialViewState} ref={camera} minZoom={13.5} maxZoom={19} maxBounds={CAMPUS} />
         <GeoJSONSource id="off-campus-mask" data={mask}>
           <Layer id="off-campus-mask" type="fill" paint={{ "fill-color": MAP_COLORS.mask, "fill-opacity": MASK_OPACITY }} />
         </GeoJSONSource>
@@ -54,6 +59,28 @@ export function CampusMap({ buildings, pin, focus, onPressMap, onPressBuilding }
             paint={{
               "circle-radius": 6,
               "circle-color": MAP_COLORS.building,
+              "circle-stroke-color": MAP_COLORS.buildingOutline,
+              "circle-stroke-width": 2,
+            }}
+          />
+        </GeoJSONSource>
+        <GeoJSONSource
+          id="listings"
+          data={listingData}
+          onPress={(event) => {
+            const id = event.nativeEvent.features[0]?.properties?.id;
+            const listing = listings.find((candidate) => candidate.id === id);
+            if (!listing) return;
+            event.stopPropagation();
+            onPressListing(listing);
+          }}
+        >
+          <Layer
+            id="listings"
+            type="circle"
+            paint={{
+              "circle-radius": 8,
+              "circle-color": LISTING_COLOR,
               "circle-stroke-color": MAP_COLORS.buildingOutline,
               "circle-stroke-width": 2,
             }}

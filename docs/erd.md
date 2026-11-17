@@ -1,7 +1,7 @@
 # Entity relationship diagram
 
 Based on the ERD in `docs/prd.md` (PR #6), with the changes below so the tables can hold what the
-user stories require. **`BUILDING`, `USER`, `IDENTITY` and `ITEM_LISTING` exist so far**
+user stories require. **`BUILDING`, `USER` and `ITEM_LISTING` exist so far**
 (`V2__buildings.sql`, `V3__users.sql`, `V4__item_listings.sql`). The rest is the plan, and each table
 gets its migration when its story is built.
 
@@ -10,7 +10,6 @@ A listing is in one building, so `building_id` is the whole link between the two
 
 ```mermaid
 erDiagram
-    USER ||--o{ IDENTITY : "signs in with"
     USER ||--o{ ITEM_LISTING : posts
     USER ||--o{ SIGHTING : reports
     BUILDING ||--o{ ITEM_LISTING : "last seen in"
@@ -27,14 +26,8 @@ erDiagram
         string email UK
         string display_name
         string role
-        datetime created_at
-    }
-
-    IDENTITY {
-        long id PK
-        long user_id FK
-        string provider
-        string provider_user_id
+        string oauth_provider
+        string oauth_provider_user_id
         datetime created_at
     }
 
@@ -103,7 +96,7 @@ erDiagram
 | Added `BUILDING`, and `ITEM_LISTING.building_id` replaces `location_label` | PRD-4 and PRD-7 require a building, and the picker needs a fixed list |
 | Added `SIGHTING` | PRD-7 and the vertical slice can't be stored without it |
 | Added `ITEM_LISTING.floor` and `last_seen_at` | PRD-4 posts a floor and a last-seen time |
-| Added `IDENTITY` | Appendix I, section 3.5: one row per provider login, keyed by provider ID and never by email |
+| Added `USER.oauth_provider` and `oauth_provider_user_id`, unique as a pair | Appendix I, section 3.5: sign-in finds the account by provider ID, never by email. Each account has one sign-in provider, so the linking stretch goal would need its own table |
 | `latitude` and `longitude` are `double` and optional on `ITEM_LISTING` | PRD-5 covers an item with no map pin. Store both or neither |
 
 ## When a row is deleted
@@ -113,7 +106,7 @@ behind.
 
 | Deleted | Also deleted | Blocked? |
 |---|---|---|
-| `USER` | Their identities, listings, sightings, participants and messages | No |
+| `USER` | Their listings, sightings, participants and messages | No |
 | `ITEM_LISTING` | Its sightings and conversations | No |
 | `CONVERSATION` | Its participants and messages | No |
 | `BUILDING` | Nothing | Yes, while a listing or sighting uses it |

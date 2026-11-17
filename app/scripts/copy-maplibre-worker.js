@@ -4,9 +4,9 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const root = path.join(__dirname, "..");
-const source = path.join(root, "node_modules", "maplibre-gl", "dist", "maplibre-gl-worker.mjs");
-const targetDir = path.join(root, "public");
+const repoRoot = path.join(__dirname, "..", "..");
+const source = path.join(repoRoot, "node_modules", "maplibre-gl", "dist", "maplibre-gl-worker.mjs");
+const targetDir = path.join(repoRoot, "public");
 
 fs.mkdirSync(targetDir, { recursive: true });
 fs.copyFileSync(source, path.join(targetDir, "maplibre-gl-worker.mjs"));

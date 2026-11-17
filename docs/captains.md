@@ -6,12 +6,12 @@
 > Every member is captain at least once. The deputy cannot be the same person as the captain.
 > Change it only through a pull request, so the history shows any swap and why.
 
-| Sprint | Captain                   | Deputy                       | Release tag |
-|---|---------------------------|------------------------------|---|
-| 1 | `Daniel Martinez (@dmtz3471)` | `Tony Tan (@NotACatgirl)` | `v0.1.0` |
-| 2 | `<name> (@github)`        | `<name> (@github)`           | `v0.2.0` |
-| 3 | `<name> (@github)`        | `<name> (@github)`           | `v0.3.0` |
-| 4 | `<name> (@github)`        | `<name> (@github)`           | `v1.0.0` |
+| Sprint | Captain                       | Deputy                        | Release tag |
+|---|-------------------------------|-------------------------------|---|
+| 1 | `Daniel Martinez (@dmtz3471)` | `Tony Tan (@NotACatgirl)`     | `v0.1.0` |
+| 2 | `Tony Tan (@NotACatgirl)`     | `Rian Hassett (@rianhassett)` | `v0.2.0` |
+| 3 | `<name> (@github)`            | `<name> (@github)`            | `v0.3.0` |
+| 4 | `<name> (@github)`            | `<name> (@github)`            | `v1.0.0` |
 
 ## Swaps
 

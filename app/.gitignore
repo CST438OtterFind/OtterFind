@@ -40,9 +40,6 @@ yarn-error.*
 /ios
 /android
 
-# Copied from node_modules by scripts/copy-maplibre-worker.js
-/public/maplibre-gl-worker.mjs
-
 # test output
 /coverage
 /test-results

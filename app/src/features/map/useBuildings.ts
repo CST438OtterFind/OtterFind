@@ -1,10 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
-import { ApiError, type Building, getBuildings } from "@/lib/api";
+import { type Building, getBuildings } from "@/lib/api";
+import { useRequest } from "@/lib/useRequest";
 
-/** How long to wait before telling the user the server may be waking up. */
-export const SLOW_AFTER_MS = 4_000;
-
-type Status = "loading" | "slow" | "ready" | "error";
+export { SLOW_AFTER_MS } from "@/lib/useRequest";
 
 type LoadBuildings = (options: { signal: AbortSignal }) => Promise<Building[]>;
 
@@ -14,38 +11,11 @@ type LoadBuildings = (options: { signal: AbortSignal }) => Promise<Building[]>;
  * @param load - How to fetch them. Tests pass their own.
  */
 export function useBuildings(load: LoadBuildings = getBuildings) {
-  const [buildings, setBuildings] = useState<Building[]>([]);
-  const [status, setStatus] = useState<Status>("loading");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [attempt, setAttempt] = useState(0);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    setStatus("loading");
-    setErrorMessage(null);
-
-    const slowTimer = setTimeout(() => setStatus("slow"), SLOW_AFTER_MS);
-
-    load({ signal: controller.signal })
-      .then((loaded) => {
-        if (controller.signal.aborted) return;
-        setBuildings(loaded);
-        setStatus("ready");
-      })
-      .catch((error: unknown) => {
-        if (controller.signal.aborted) return;
-        setErrorMessage(error instanceof ApiError ? error.message : "Something went wrong loading the buildings.");
-        setStatus("error");
-      })
-      .finally(() => clearTimeout(slowTimer));
-
-    return () => {
-      clearTimeout(slowTimer);
-      controller.abort();
-    };
-  }, [load, attempt]);
-
-  const retry = useCallback(() => setAttempt((current) => current + 1), []);
-
-  return { buildings, status, errorMessage, retry };
+  const { data, status, error, retry } = useRequest(load, "Something went wrong loading the buildings.");
+  return {
+    buildings: data ?? [],
+    status: status === "idle" ? ("loading" as const) : status,
+    errorMessage: error?.message ?? null,
+    retry,
+  };
 }

@@ -1,7 +1,11 @@
-import { useCallback, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { KeyboardAvoidingView, Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { Building } from "@/lib/api";
+import { useListings } from "@/features/listings/useListings";
+import { useNow } from "@/features/listings/useNow";
+import type { Building, Listing } from "@/lib/api";
+import { useSession } from "@/lib/session";
 import { type Pin, pinFromBuilding, pinFromTap } from "./campus";
 import { CampusMap } from "./CampusMap";
 import type { FocusRequest } from "./CampusMap.types";
@@ -11,24 +15,55 @@ import { useBuildings } from "./useBuildings";
 /** Screens at least this wide show the panel beside the map instead of under it. */
 const WIDE_LAYOUT_MIN_WIDTH = 768;
 
+const openListing = (listing: Listing) => router.push(`/items/${listing.id}`);
+
 /**
- * The Sprint 1 map: a campus-limited map, its buildings, and a test pin. Pins aren't saved yet. The
- * "post a lost item" form in PRD-4 will reuse this pin choice.
+ * The whole-campus map: every saved pin colored by age, the buildings, and a pin you can name and save.
+ *
+ * @param focusListingId - A listing to center on, for PRD-5's "Show on map".
  */
-export function MapScreen() {
+export function MapScreen({ focusListingId = null }: { focusListingId?: number | null }) {
   const { buildings, status, errorMessage, retry } = useBuildings();
+  const { status: sessionStatus } = useSession();
+  const { listings, status: listingsStatus, errorMessage: listingsError, retry: retryListings } = useListings();
+  const now = useNow();
   const [pin, setPin] = useState<Pin | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [focus, setFocus] = useState<FocusRequest | null>(null);
   const nonce = useRef(0);
+  const centeredOn = useRef<number | null>(null);
+
+  const focusedListing = useMemo(() => listings.find((listing) => listing.id === focusListingId) ?? null, [listings, focusListingId]);
+
+  useEffect(() => {
+    if (focusedListing?.latitude == null || focusedListing.longitude == null || centeredOn.current === focusedListing.id) return;
+    centeredOn.current = focusedListing.id;
+    nonce.current += 1;
+    setFocus({ kind: "point", latitude: focusedListing.latitude, longitude: focusedListing.longitude, nonce: nonce.current });
+  }, [focusedListing]);
 
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const wide = width >= WIDE_LAYOUT_MIN_WIDTH;
+  // The save form needs more room than the lists, especially with the keyboard open.
+  const savingPin = sessionStatus === "signedIn" && pin !== null;
+
+  // The map shrinks to make room for the save form on a phone, which could push the pin out of view.
+  useEffect(() => {
+    if (!savingPin || wide || !pin) return;
+    nonce.current += 1;
+    const next = nonce.current;
+    setFocus((current) => {
+      const alreadyThere = current?.kind === "point" && current.latitude === pin.latitude && current.longitude === pin.longitude;
+      return alreadyThere ? { ...current, nonce: next } : { kind: "point", latitude: pin.latitude, longitude: pin.longitude, nonce: next, keepZoom: true };
+    });
+  }, [savingPin, wide, pin]);
 
   const chooseBuilding = useCallback((building: Building) => {
     setPin(pinFromBuilding(building));
     setNotice(null);
+    setSavedMessage(null);
     nonce.current += 1;
     setFocus({ kind: "point", latitude: building.latitude, longitude: building.longitude, nonce: nonce.current });
   }, []);
@@ -39,11 +74,21 @@ export function MapScreen() {
       if (result.ok) {
         setPin(result.pin);
         setNotice(null);
+        setSavedMessage(null);
       } else {
         setNotice(result.message);
       }
     },
     [buildings],
+  );
+
+  const pinSaved = useCallback(
+    (listing: Listing) => {
+      setPin(null);
+      setSavedMessage(`Saved “${listing.title}”.`);
+      retryListings();
+    },
+    [retryListings],
   );
 
   const showWholeCampus = useCallback(() => {
@@ -64,9 +109,19 @@ export function MapScreen() {
           <Text style={styles.headerButtonText}>Show whole campus</Text>
         </Pressable>
       </View>
-      <View style={[styles.body, wide && styles.bodyWide]}>
+      {/* Lifts the save form above the phone's keyboard. Android apps draw behind the keyboard by default. */}
+      <KeyboardAvoidingView behavior="padding" style={[styles.body, wide && styles.bodyWide]}>
         <View style={styles.map}>
-          <CampusMap buildings={buildings} pin={pin} focus={focus} onPressMap={tapMap} onPressBuilding={chooseBuilding} />
+          <CampusMap
+            buildings={buildings}
+            pin={pin}
+            focus={focus}
+            listings={listings}
+            now={now}
+            onPressMap={tapMap}
+            onPressBuilding={chooseBuilding}
+            onPressListing={openListing}
+          />
         </View>
         <MapPanel
           buildings={buildings}
@@ -80,9 +135,19 @@ export function MapScreen() {
             setPin(null);
             setNotice(null);
           }}
-          style={wide ? styles.panelWide : [styles.panelNarrow, { paddingBottom: insets.bottom + 12 }]}
+          signedIn={sessionStatus === "signedIn"}
+          listings={listings}
+          listingsStatus={listingsStatus}
+          listingsError={listingsError}
+          onRetryListings={retryListings}
+          focusedListing={focusedListing}
+          savedMessage={savedMessage}
+          now={now}
+          onSaved={pinSaved}
+          onOpenListing={openListing}
+          style={wide ? styles.panelWide : [savingPin ? styles.panelNarrowSaving : styles.panelNarrow, { paddingBottom: insets.bottom + 12 }]}
         />
-      </View>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -106,4 +171,5 @@ const styles = StyleSheet.create({
   map: { flex: 1, minHeight: 0 },
   panelWide: { width: 360 },
   panelNarrow: { height: "46%" },
+  panelNarrowSaving: { height: "72%" },
 });
