@@ -1,5 +1,5 @@
 // Serves the exported web build for Playwright. Unknown paths get index.html, the same as the rewrite
-// rule on the Render static site, so opening /map directly works.
+// rule on the Render static site, so opening /map or /items/42 directly works.
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");

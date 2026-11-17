@@ -1,12 +1,15 @@
 # Entity relationship diagram
 
 Based on the ERD in `docs/prd.md` (PR #6), with the changes below so the tables can hold what the
-user stories require. **Only `BUILDING` (`V2__buildings.sql`) and `USER` (`V3__users.sql`) exist so
-far.** The rest is the plan, and each table gets its migration when its story is built.
+user stories require. **`BUILDING`, `USER` and `ITEM_LISTING` exist so far**
+(`V2__buildings.sql`, `V3__users.sql`, `V4__item_listings.sql`). The rest is the plan, and each table
+gets its migration when its story is built.
+
+A map pin isn't its own table. It's the `latitude` and `longitude` on an `ITEM_LISTING` or `SIGHTING`.
+A listing is in one building, so `building_id` is the whole link between the two tables.
 
 ```mermaid
 erDiagram
-    USER ||--o{ IDENTITY : "signs in with"
     USER ||--o{ ITEM_LISTING : posts
     USER ||--o{ SIGHTING : reports
     BUILDING ||--o{ ITEM_LISTING : "last seen in"
@@ -22,14 +25,8 @@ erDiagram
         string email UK
         string display_name
         string role
-        datetime created_at
-    }
-
-    IDENTITY {
-        long id PK
-        long user_id FK
-        string provider
-        string provider_user_id
+        string oauth_provider
+        string oauth_provider_user_id
         datetime created_at
     }
 
@@ -94,7 +91,7 @@ erDiagram
 | Added `BUILDING`, and `ITEM_LISTING.building_id` replaces `location_label` | PRD-4 and PRD-7 require a building, and the picker needs a fixed list |
 | Added `SIGHTING` | PRD-7 and the vertical slice can't be stored without it |
 | Added `ITEM_LISTING.floor` and `last_seen_at` | PRD-4 posts a floor and a last-seen time |
-| Added `IDENTITY` | Appendix I, section 3.5: one row per provider login, keyed by provider ID and never by email |
+| Added `USER.oauth_provider` and `oauth_provider_user_id`, unique as a pair | Appendix I, section 3.5: sign-in finds the account by provider ID, never by email. Each account has one sign-in provider, so the linking stretch goal would need its own table |
 | `latitude` and `longitude` are `double` and optional on `ITEM_LISTING` | PRD-5 covers an item with no map pin. Store both or neither |
 | `CONVERSATION.requester_id` replaces `CONVERSATION_PARTICIPANT` | A conversation is always between the person asking and the item's poster, so `requester_id` and the listing's `owner_id` already name both people. That's one less table to keep in step, and `UNIQUE (item_listing_id, requester_id)` stops duplicate conversations |
 
@@ -105,7 +102,7 @@ behind.
 
 | Deleted | Also deleted | Blocked? |
 |---|---|---|
-| `USER` | Their identities, listings and sightings, and every conversation they're in, with its messages | No |
+| `USER` | Their listings, sightings, participants and messages | No |
 | `ITEM_LISTING` | Its sightings and conversations | No |
 | `CONVERSATION` | Its messages | No |
 | `BUILDING` | Nothing | Yes, while a listing or sighting uses it |
@@ -116,5 +113,6 @@ behind.
   deletes every conversation that person is in, for both people, instead of leaving the other person
   half a conversation. Each conversation goes with its requester (`requester_id`) or with the item it's
   about (the poster's listings), so cascading deletes cover it with no extra code.
-- **`BUILDING` holds outdoor places too:** PRD-4 requires a building, so an item lost on a lawn or in
-  a parking lot needs a row like "Main Quad". These aren't seeded yet.
+- **`BUILDING` holds outdoor places too:** PRD-4 requires a building, so an item lost outdoors uses the
+  nearest one, with the floor left blank. Rows like "Main Quad" can be added later if that isn't
+  precise enough.

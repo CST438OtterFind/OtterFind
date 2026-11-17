@@ -94,8 +94,9 @@ jobs:
         run: |
           cp .env.example .env
           sed -i "s|^APP_JWT_SECRET_BASE64=.*|APP_JWT_SECRET_BASE64=$(openssl rand -base64 32)|" .env
+      # compose.e2e.yml adds the test account and test data the signed-in tests use.
       - name: Start the API and Postgres
-        run: docker compose up --build --detach --wait --wait-timeout 300
+        run: docker compose -f compose.yaml -f compose.e2e.yml up --build --detach --wait --wait-timeout 300
       - uses: actions/setup-node@v7
         with:
           node-version: "22"
@@ -108,7 +109,7 @@ jobs:
         run: npm run e2e
       - name: Show API logs
         if: ${{ failure() }}
-        run: docker compose logs api
+        run: docker compose -f compose.yaml -f compose.e2e.yml logs api
       - name: Upload Playwright report
         if: ${{ failure() }}
         uses: actions/upload-artifact@v7

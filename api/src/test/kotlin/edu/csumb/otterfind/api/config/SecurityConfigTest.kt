@@ -9,16 +9,19 @@ import com.nimbusds.jwt.SignedJWT
 import io.restassured.RestAssured.given
 import io.restassured.specification.RequestSpecification
 import org.junit.jupiter.api.Test
-import org.springframework.test.context.TestPropertySource
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.TestPropertySource
 import java.time.Duration
 import java.time.Instant
 import java.util.Base64
 import java.util.Date
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -29,6 +32,9 @@ import kotlin.test.assertTrue
 class SecurityConfigTest {
     @LocalServerPort
     private var port = 0
+
+    @Autowired
+    private lateinit var context: ApplicationContext
 
     @Value("\${app.jwt.secret-base64}")
     private lateinit var secretBase64: String
@@ -81,7 +87,7 @@ class SecurityConfigTest {
 
     @Test
     fun `a valid token gets past security, so an unknown path is a 404 and not a 401`() {
-        val response = request().header("Authorization", "Bearer ${token()}").get("/api/unknown-endpoint")
+        val response = request().header("Authorization", "Bearer ${token()}").get("/api/no-such-route")
         assertEquals(404, response.statusCode())
     }
 
@@ -103,6 +109,12 @@ class SecurityConfigTest {
         val expired = token(expiresAt = Instant.now().minus(Duration.ofMinutes(5)))
         val response = request().header("Authorization", "Bearer $expired").get("/api/items")
         assertEquals(401, response.statusCode())
+    }
+
+    @Test
+    fun `the test sign-in route doesn't exist outside the e2e profile`() {
+        assertFalse(context.containsBean("testAuthController"))
+        assertEquals(401, request().post("/test/token?email=e2e-user@example.test").statusCode())
     }
 
     @Test

@@ -1,0 +1,4 @@
+# Adds the test account and test data. Only compose.e2e.yml and CI turn this profile on. See docs/adr/0001-e2e-test-sign-in.md.
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/e2e

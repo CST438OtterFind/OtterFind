@@ -54,7 +54,6 @@ list. The client shows each `message` beside its `field`.
 
 ## Current state
 
-Spring's Problem Details support is on (`spring.mvc.problemdetails.enabled`), and
-`ErrorModelTest` covers it. **Not done yet:** 401 and 403 come from Spring Security's filters
-with an empty body, and the `errors` list has no handler. Add both with the first endpoint that
-needs them.
+Spring's Problem Details support is on (`spring.mvc.problemdetails.enabled`). 401 and 403 from Spring
+Security's filters use the same format, and a 400 for invalid fields adds the `errors` list.
+`ErrorModelTest` and `ListingApiTest` cover these.

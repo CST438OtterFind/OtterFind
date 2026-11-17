@@ -1,6 +1,5 @@
-import type { Building } from "@/lib/api";
+import type { Building, Listing } from "@/lib/api";
 import { CAMPUS_ZONES } from "./campus";
-import type { MapListing } from "./CampusMap.types";
 import { buildingsToGeoJson, listingsToGeoJson, offCampusMask, pinToGeoJson } from "./mapData";
 
 const library: Building = { id: 25, name: "Library", latitude: 36.65231, longitude: -121.79614 };
@@ -59,12 +58,8 @@ describe("offCampusMask", () => {
 
 describe("listingsToGeoJson", () => {
   const now = Date.parse("2026-11-09T20:00:00Z");
-  const listing = (id: number, createdAt: string, latitude: number | null = 36.65231, longitude: number | null = -121.79614): MapListing => ({
-    id,
-    createdAt,
-    latitude,
-    longitude,
-  });
+  const listing = (id: number, createdAt: string, latitude: number | null = 36.65231, longitude: number | null = -121.79614) =>
+    ({ id, createdAt, latitude, longitude }) as Listing;
 
   it("puts longitude first and keeps the id, so a tapped pin can be matched to its listing", () => {
     const [feature] = listingsToGeoJson([listing(7, "2026-11-09T19:00:00Z")], now).features;
@@ -82,9 +77,5 @@ describe("listingsToGeoJson", () => {
 
   it("leaves out a listing with no pin", () => {
     expect(listingsToGeoJson([listing(1, "2026-11-09T19:00:00Z", null, null)], now).features).toEqual([]);
-  });
-
-  it("draws nothing while there are no listings yet", () => {
-    expect(listingsToGeoJson([], now).features).toEqual([]);
   });
 });

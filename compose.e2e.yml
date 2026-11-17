@@ -1,0 +1,7 @@
+# Adds the test account and test data to the local stack:
+#   docker compose -f compose.yaml -f compose.e2e.yml up --build
+# Never point this at Supabase. The API refuses to start under this profile with a non-local database.
+services:
+  api:
+    environment:
+      SPRING_PROFILES_ACTIVE: e2e

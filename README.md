@@ -1,7 +1,7 @@
 # OtterFind
 
-The Expo app lives at the repository root. The Spring Boot API remains in `api/`. The map and the app's routes
-are in `app/`, which shares one install with the root through npm workspaces.
+The Expo app lives at the repository root. The Spring Boot API remains in `api/`. The map, the listings and
+the app's routes are in `app/`, which shares one install with the root through npm workspaces.
 
 ## Run the app
 
@@ -69,13 +69,26 @@ The build creates an `android/` folder. Git ignores it, so don't commit it; it's
 **On a physical phone,** turn on USB debugging, plug the phone in, and run
 `npx expo run:android --device`.
 
-The Google and GitHub buttons are UI placeholders. OAuth isn't connected yet. **View campus map** opens the map,
-which loads its buildings from the API, so start the API first:
+The Google and GitHub buttons are UI placeholders. OAuth isn't connected yet.
+
+## Try it with the test account
+
+Listings need a signed-in user. Until sign-in is built, a local stack can use a seeded test account:
 
 ```sh
 cp .env.example .env     # first time only, then set APP_JWT_SECRET_BASE64 as the file says
-docker compose up --build
+docker compose -f compose.yaml -f compose.e2e.yml up --build
 ```
+
+In another terminal:
+
+```sh
+EXPO_PUBLIC_TEST_ACCOUNT=true npm run web
+```
+
+Choose **Use test account**. You'll see six seeded listings, and any pin you save goes to your local
+Postgres. The test account only exists under `compose.e2e.yml`, so it can't be used on the deployed API. Plain
+`docker compose up` runs the same stack with no test account or test data.
 
 ## Run the tests
 
@@ -85,5 +98,5 @@ npm run typecheck
 npm run test:coverage                # Client logic
 
 npx playwright install chromium      # first time only
-npm run e2e                          # Needs the API above running
+npm run e2e                          # Needs the compose.e2e.yml stack above running
 ```

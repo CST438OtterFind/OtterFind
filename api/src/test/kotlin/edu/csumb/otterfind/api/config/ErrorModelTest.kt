@@ -10,6 +10,9 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockHttpServletResponse
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.test.context.ActiveProfiles
 import java.time.Duration
 import java.time.Instant
@@ -54,5 +57,28 @@ class ErrorModelTest {
         assertEquals(404, response.jsonPath().getInt("status"))
         assertEquals("Not Found", response.jsonPath().getString("title"))
         assertEquals("/api/no-such-route", response.jsonPath().getString("instance"))
+    }
+
+    @Test
+    fun `a missing token answers with Problem Details and still names the Bearer scheme`() {
+        val response = given().port(port).get("/api/items")
+
+        assertEquals(401, response.statusCode())
+        assertTrue(response.contentType().startsWith("application/problem+json"), "Content type was ${response.contentType()}")
+        assertEquals("Unauthorized", response.jsonPath().getString("title"))
+        assertEquals("/api/items", response.jsonPath().getString("instance"))
+        assertTrue(response.header("WWW-Authenticate").startsWith("Bearer"))
+    }
+
+    @Test
+    fun `a rejected signed-in user gets a 403 as Problem Details`() {
+        val request = MockHttpServletRequest("DELETE", "/api/admin")
+        val response = MockHttpServletResponse()
+
+        ProblemAccessDeniedHandler().handle(request, response, AccessDeniedException("No"))
+
+        assertEquals(403, response.status)
+        assertEquals("application/problem+json", response.contentType)
+        assertTrue(response.contentAsString.contains("\"instance\":\"/api/admin\""), response.contentAsString)
     }
 }

@@ -1,8 +1,7 @@
 import type { ExpressionSpecification } from "maplibre-gl";
-import type { Building } from "@/lib/api";
-import { type AgeBand, ageBand } from "./age";
+import { type AgeBand, ageBand } from "@/features/listings/age";
+import type { Building, Listing } from "@/lib/api";
 import { CAMPUS_ZONES, type Pin, type Zone } from "./campus";
-import type { MapListing } from "./CampusMap.types";
 
 /** The base map. OpenFreeMap needs no API key or sign-up. It offers no uptime guarantee, so this can be swapped. */
 export const MAP_STYLE_URL = process.env.EXPO_PUBLIC_MAP_STYLE_URL || "https://tiles.openfreemap.org/styles/liberty";
@@ -21,11 +20,10 @@ export const MAP_COLORS = {
 
 export const MASK_OPACITY = 0.45;
 
-/**
- * Saved pins are colored by age. Color must never be the only signal, so whatever lists the pins beside the
- * map should spell the age out too.
- */
+/** Saved pins are colored by age. The list beside the map spells the age out, so color is never the only signal. */
 export const LISTING_AGE_COLORS: Record<AgeBand, string> = { today: "#E8590C", week: "#1971C2", older: "#6C757D" };
+
+export const LISTING_AGE_LABELS: Record<AgeBand, string> = { today: "Today", week: "This week", older: "Older" };
 
 /** Tells the map to read each saved pin's color from its age group. */
 export const LISTING_COLOR: ExpressionSpecification = [
@@ -61,7 +59,7 @@ export function pinToGeoJson(pin: Pin | null): GeoJSON.FeatureCollection<GeoJSON
 }
 
 /** Saved listings as GeoJSON points, each with its age group. Listings with no pin are left out. */
-export function listingsToGeoJson(listings: MapListing[], now: number): GeoJSON.FeatureCollection<GeoJSON.Point> {
+export function listingsToGeoJson(listings: Listing[], now: number): GeoJSON.FeatureCollection<GeoJSON.Point> {
   return {
     type: "FeatureCollection",
     features: listings.flatMap((listing) =>
