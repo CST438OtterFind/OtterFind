@@ -63,14 +63,6 @@ test("has a page title", async ({ page }) => {
   await expect(page).toHaveTitle(/OtterFind/);
 });
 
-test("the home page links to the campus map", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("link", { name: "View campus map" }).click();
-
-  await expect(page).toHaveURL(/\/map$/);
-  await expect(page.getByRole("button", { name: "Library", exact: true })).toBeVisible();
-});
-
 test("choosing a building drops a pin on it", async ({ page }) => {
   await page.getByRole("button", { name: "Library", exact: true }).click();
 
@@ -179,6 +171,13 @@ test("without WebGL2, the page explains and the building list still works", asyn
   await expect(page.getByTestId("pin-summary")).toContainText("At Library");
   // MapLibre reports the failure as it gives up. The page handled it, so it doesn't count here.
   pageErrors.set(page, []);
+});
+
+test("signed out, a pin can be dropped but saving asks you to sign in", async ({ page }) => {
+  await page.getByRole("button", { name: "Library", exact: true }).click();
+
+  await expect(page.getByText("Sign in to save this pin.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save pin" })).toHaveCount(0);
 });
 
 test.describe("on a phone-sized screen", () => {

@@ -1,7 +1,7 @@
 # OtterFind
 
-The Expo app lives at the repository root. The Spring Boot API remains in `api/`. The map and the app's routes
-are in `app/`, which shares one install with the root through npm workspaces.
+The Expo app lives at the repository root. The Spring Boot API remains in `api/`. The map, the listings and
+the app's routes are in `app/`, which shares one install with the root through npm workspaces.
 
 ## Before you start
 
@@ -63,9 +63,28 @@ JDK you have.
 To stop the API, press Ctrl+C in its terminal, or run `docker compose down`. Add `-v` to delete the local
 database too.
 
+## Try it with the test account
+
+Listings need a signed-in user. Until sign-in is built, a local stack can use a seeded test account:
+
+```sh
+cp .env.example .env     # first time only, then set APP_JWT_SECRET_BASE64 as the file says
+docker compose -f compose.yaml -f compose.e2e.yml up --build
+```
+
+In another terminal:
+
+```sh
+EXPO_PUBLIC_TEST_ACCOUNT=true npm run web
+```
+
+Choose **Use test account**. You'll see six seeded listings, and any pin you save goes to your local
+Postgres. The test account only exists under `compose.e2e.yml`, so it can't be used on the deployed API. Plain
+`docker compose up` runs the same stack with no test account or test data.
+
 ## Run the tests
 
-From the repo root, with the API from the quick start still running for the last step:
+From the repo root:
 
 ```sh
 cd api && ./gradlew check && cd ..   # API tests, detekt and the coverage floor. Needs Docker and JDK 25
@@ -73,7 +92,7 @@ npm run typecheck
 npm run test:coverage                # Client logic
 
 npx playwright install chromium      # first time only
-npm run e2e                          # Builds the web app itself, and needs the API running
+npm run e2e                          # Needs the compose.e2e.yml stack above running
 ```
 
 ## Run the app

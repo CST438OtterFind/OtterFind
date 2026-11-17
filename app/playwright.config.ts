@@ -1,6 +1,6 @@
 import { defineConfig } from "@playwright/test";
 
-/** Runs against the exported web build. Start the API first, from the repo root: `docker compose up --build`. */
+/** Runs against the exported web build. Start the API first, from the repo root: `docker compose -f compose.yaml -f compose.e2e.yml up --build`. */
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -15,7 +15,7 @@ export default defineConfig({
     launchOptions: { args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] },
   },
   webServer: {
-    // The app is built from the repo root. This server also lets a test open /map directly.
+    // The app is built from the repo root. This server also lets a test open /map or /items/42 directly.
     command: "npm run build:web && node app/scripts/serve-web-build.js",
     cwd: "..",
     url: "http://localhost:8081",

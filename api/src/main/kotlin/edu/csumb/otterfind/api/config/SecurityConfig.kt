@@ -49,7 +49,15 @@ class SecurityConfig {
                 authorize(HttpMethod.GET, "/api/buildings", permitAll)
                 authorize(anyRequest, authenticated)
             }
-            oauth2ResourceServer { jwt { } }
+            exceptionHandling {
+                authenticationEntryPoint = ProblemAuthenticationEntryPoint()
+                accessDeniedHandler = ProblemAccessDeniedHandler()
+            }
+            oauth2ResourceServer {
+                authenticationEntryPoint = ProblemAuthenticationEntryPoint()
+                accessDeniedHandler = ProblemAccessDeniedHandler()
+                jwt { }
+            }
         }
         return http.build()
     }

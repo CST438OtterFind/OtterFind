@@ -108,10 +108,9 @@ export function CampusMap({ buildings, pin, focus, listings, now, onPressMap, on
               { layers: [layer] },
             )
           : [];
-      const { onPressListing } = latest.current;
-      const listing = onPressListing && latest.current.listings.find((candidate) => candidate.id === hitsOn("listings")[0]?.properties?.id);
-      if (onPressListing && listing) {
-        onPressListing(listing.id);
+      const listing = latest.current.listings.find((candidate) => candidate.id === hitsOn("listings")[0]?.properties?.id);
+      if (listing) {
+        latest.current.onPressListing(listing);
         return;
       }
       const building = latest.current.buildings.find((candidate) => candidate.id === hitsOn("buildings")[0]?.properties?.id);
@@ -151,7 +150,7 @@ export function CampusMap({ buildings, pin, focus, listings, now, onPressMap, on
     const map = mapRef.current;
     if (!map || !focus) return;
     if (focus.kind === "campus") map.fitBounds(toBounds(CAMPUS_BOUNDS), { padding: FIT_PADDING });
-    else map.easeTo({ center: [focus.longitude, focus.latitude], zoom: FOCUS_ZOOM });
+    else map.easeTo({ center: [focus.longitude, focus.latitude], ...(focus.keepZoom ? {} : { zoom: FOCUS_ZOOM }) });
   }, [focus]);
 
   if (unsupported) {

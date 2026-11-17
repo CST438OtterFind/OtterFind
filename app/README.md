@@ -1,9 +1,11 @@
 # OtterFind app code
 
-The map and the routes for the OtterFind app. This folder is an npm workspace of the Expo app
+The map, the listings, the messages and the routes for the OtterFind app. This folder is an npm workspace of the Expo app
 at the repo root, so install and run everything from the root. See the root `README.md`.
 
 ## What you can try
+
+Signed out:
 
 - See the campus map with a marker for each building. The buildings come from the API.
 - Drag and zoom. The map stops at the campus limit, and everything off campus is shaded.
@@ -11,12 +13,21 @@ at the repo root, so install and run everything from the root. See the root `REA
 - Open **Messages** to see the inbox, open a conversation, and send a message. It runs on sample
   conversations until the messaging API and sign-in exist, and resets when the app reloads.
 
+With the test account, as described in the root `README.md`:
+
+- See every listing, newest first, with its age.
+- See every saved pin on the whole-campus map, colored by age.
+- Open a listing to see its details and a map centered on its pin.
+- Name a dropped pin and save it. It's still there after a reload.
+- Delete your own listing.
+
 ## Pages
 
 | URL | Page | API call |
 |---|---|---|
-| `/` | The sign-in page in the root `App.tsx`, with links to the map and messages | None |
-| `/map` | The whole-campus map | `GET /api/buildings` |
+| `/` | Listings when signed in, otherwise the sign-in page in the root `App.tsx` | `GET /api/items` |
+| `/map` | The whole-campus map. `?item=42` centers it on that listing | `GET /api/buildings`, `GET /api/items` |
+| `/items/42` | One listing | `GET /api/items/42` |
 | `/messages` | Your conversations, most recent first | None yet. Will be `GET /api/conversations` |
 | `/messages/<id>` | One conversation, with a box to send a message | None yet. Will be `GET` and `POST /api/conversations/{id}/messages` |
 
@@ -30,7 +41,7 @@ npm test                 # logic tests
 npm run test:coverage    # the same, and fails under the coverage threshold
 
 npx playwright install chromium    # first time only
-npm run e2e                        # needs docker compose up running
+npm run e2e                        # needs the compose.e2e.yml stack running
 ```
 
 The Playwright tests cover the web client. They don't run on Android, so check Android by hand.
@@ -41,6 +52,8 @@ The Playwright tests cover the web client. They don't run on Android, so check A
 |---|---|
 | `src/app/` | Screens. Expo Router turns each file into a route |
 | `src/lib/api.ts` | The one module that calls the API. Add new endpoints here |
+| `src/lib/session.tsx`, `src/lib/tokenStore.ts` | Who's signed in, and where the access token is kept |
+| `src/features/listings/` | The listing screens, the save form, and how ages are worded |
 | `src/features/map/campus.ts` | The campus limits and the pin rules |
 | `src/features/map/mapData.ts` | Colors, and converting data to GeoJSON for the map |
 | `src/features/map/CampusMap.web.tsx` | The map on web (`maplibre-gl`) |
@@ -59,11 +72,10 @@ The Playwright tests cover the web client. They don't run on Android, so check A
   center, so Android uses the exact campus limit. The real rule is `isOnCampus` in `campus.ts`.
 - **Web needs a worker file.** `npm install` copies it into `public/` at the repo root. Without it the page looks fine,
   but the map never finishes loading.
-- **The API has the final say.** The campus check here only gives quick feedback. When posting is built,
-  the API must check the pin too, using the same limits.
-- **Saved pins are a placeholder for now.** The map can draw listings, colored by age, but `MapScreen` passes
-  an empty list, `NO_LISTINGS_YET`, until the listings work lands. Any listing with the fields in `MapListing`
-  (`CampusMap.types.ts`) fits, so connecting it means replacing that list and passing `onPressListing`.
+- **The API has the final say.** The campus check here only gives quick feedback. `CampusBounds.kt` in the
+  API makes the real decision, so change both together.
+- **Connecting real sign-in:** call `signIn(token)` from `useSession()` with the API's token, where the token's
+  subject is the user's ID. Then remove the "Use test account" button from `src/app/index.tsx`.
 - **Messaging runs on sample data for now.** `sampleMessages.ts` stands in for the messaging routes in
   `docs/openapi.yaml`, with the same rules, including 404 for a conversation that isn't yours. Its
   functions have the same signatures the real ones in `src/lib/api.ts` will have, so connecting the
