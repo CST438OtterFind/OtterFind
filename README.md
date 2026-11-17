@@ -3,13 +3,80 @@
 The Expo app lives at the repository root. The Spring Boot API remains in `api/`. The map and the app's routes
 are in `app/`, which shares one install with the root through npm workspaces.
 
-## Run the app
+## Before you start
 
-Install dependencies once:
+Install these first:
+
+| What | Version | Needed for | Check with |
+|---|---|---|---|
+| Node.js | 22, the version CI uses | Everything | `node --version` |
+| Docker Desktop, running | Docker Compose 2.24 or newer | The API, its database and the API tests | `docker compose version` |
+| JDK | 25 exactly | The API tests (`./gradlew check`) | See below |
+| Android Studio and JDK 17 | | Only the Android app. See [Android](#android) | |
+
+**JDK 25:** install [Temurin 25](https://adoptium.net/temurin/releases/?version=25). The API is built for Java 25
+and won't use another version. Gradle finds an installed JDK 25 by itself, even when `JAVA_HOME` points at
+the JDK 17 that the Android build uses, so you can keep both. On macOS, `/usr/libexec/java_home -V` lists every
+JDK you have.
+
+**On Windows,** use `copy` where these steps say `cp`, `.\gradlew.bat` where they say `./gradlew`, and run
+`openssl` in Git Bash.
+
+## Quick start: the API and the web app
+
+1. Clone the repo:
+
+   ```sh
+   git clone https://github.com/CST438OtterFind/OtterFind.git
+   cd OtterFind
+   ```
+
+2. Make your `.env`, then generate a secret and paste it into `.env` as the value of
+   `APP_JWT_SECRET_BASE64`. The API won't start without it.
+
+   ```sh
+   cp .env.example .env
+   openssl rand -base64 32
+   ```
+
+3. Start the API and its own Postgres. The first build takes a few minutes.
+
+   ```sh
+   docker compose up --build
+   ```
+
+4. In a second terminal, check that the API is up:
+
+   ```sh
+   curl http://localhost:8080/actuator/health   # shows "status":"UP"
+   curl http://localhost:8080/api/buildings     # a list of campus buildings
+   ```
+
+5. Install the app's dependencies and start the web app, then open http://localhost:8081.
+   **View campus map** shows the buildings from the API.
+
+   ```sh
+   npm install
+   npm run web
+   ```
+
+To stop the API, press Ctrl+C in its terminal, or run `docker compose down`. Add `-v` to delete the local
+database too.
+
+## Run the tests
+
+From the repo root, with the API from the quick start still running for the last step:
 
 ```sh
-npm install
+cd api && ./gradlew check && cd ..   # API tests, detekt and the coverage floor. Needs Docker and JDK 25
+npm run typecheck
+npm run test:coverage                # Client logic
+
+npx playwright install chromium      # first time only
+npm run e2e                          # Builds the web app itself, and needs the API running
 ```
+
+## Run the app
 
 ### Web
 
@@ -17,7 +84,11 @@ npm install
 npm start
 ```
 
-Press `w` to open the app in your browser, or run `npm run web` instead.
+Press `w` to open the app in your browser, or run `npm run web` instead. The map loads its buildings from the
+API, so start the API first (quick start, step 3).
+
+The Google and GitHub buttons are UI placeholders. OAuth isn't connected yet. **View campus map** opens the map,
+and **Messages** opens messaging, which runs on sample conversations until the messaging API exists.
 
 ### Android
 
@@ -30,7 +101,7 @@ and native Google Sign-In, which Expo Go can't provide (see `docs/appendix_i_aut
 
 1. Install JDK 17 with `brew install --cask zulu@17`, then add this line to your shell profile:
    `~/.zshrc` if your terminal uses zsh (the macOS default), or `~/.bash_profile` if it uses bash
-   (run `echo $SHELL` to check):
+   (run `echo $SHELL` to check). This is separate from the JDK 25 the API tests need, so keep both.
 
    ```sh
    export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home
@@ -67,23 +138,5 @@ The build creates an `android/` folder. Git ignores it, so don't commit it; it's
 `app.json`.
 
 **On a physical phone,** turn on USB debugging, plug the phone in, and run
-`npx expo run:android --device`.
-
-The Google and GitHub buttons are UI placeholders. OAuth isn't connected yet. **View campus map** opens the map,
-which loads its buildings from the API, so start the API first:
-
-```sh
-cp .env.example .env     # first time only, then set APP_JWT_SECRET_BASE64 as the file says
-docker compose up --build
-```
-
-## Run the tests
-
-```sh
-cd api && ./gradlew check && cd ..   # API tests, detekt and the coverage floor. Needs Docker.
-npm run typecheck
-npm run test:coverage                # Client logic
-
-npx playwright install chromium      # first time only
-npm run e2e                          # Needs the API above running
-```
+`npx expo run:android --device`. On the emulator the app reaches the API on your computer by itself. On a
+physical phone, set `EXPO_PUBLIC_API_URL` in `.env` to your computer's LAN address, as `.env.example` explains.
