@@ -12,6 +12,24 @@ Postgres container, even if `.env` holds other database values.
 To add the test account and test data, use `docker compose -f compose.yaml -f compose.e2e.yml up --build`. Never
 set `SPRING_PROFILES_ACTIVE=e2e` on Render. The API refuses to start with that profile and a non-local database.
 
+## Run the tests
+
+The same checks CI runs, so a clean checkout reaches a test run with no extra setup.
+
+```bash
+# API: compiles, lints, and runs the tests on in-memory H2 (migrations V1..V5 included)
+cd api && ./gradlew check
+
+# App: from the repo root
+npm install            # first time only
+npm run typecheck
+npm test               # unit tests
+
+npx playwright install chromium                      # first time only
+docker compose -f compose.yaml -f compose.e2e.yml up --build   # the stack the e2e tests need
+npm run e2e            # in another terminal, against the stack above
+```
+
 ## First-time setup
 
 Do these in order. Each step needs the one before it.
