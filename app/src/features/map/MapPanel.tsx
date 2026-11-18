@@ -59,6 +59,17 @@ export function MapPanel({
 }: MapPanelProps) {
   const [search, setSearch] = useState("");
   const [chosenView, setChosenView] = useState<"buildings" | "listings" | null>(null);
+  const [listingFilter, setListingFilter] = useState<"all" | "mine">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "LOST" | "FOUND">("all");
+  const [openDropdown, setOpenDropdown] = useState<"ownership" | "type" | null>(null);
+  const visibleListings = useMemo(() =>
+          listings.filter((listing) => {
+            const matchesOwnership = listingFilter === "all" || listing.mine;
+            const matchesType = typeFilter === "all" || listing.listingType === typeFilter;
+            return matchesOwnership && matchesType;
+          }),
+      [listings, listingFilter, typeFilter],
+  );
   const matches = useMemo(() => filterBuildings(buildings, search), [buildings, search]);
   const view = chosenView ?? (signedIn ? "listings" : "buildings");
   const saving = signedIn && pin !== null;
@@ -124,6 +135,81 @@ export function MapPanel({
 
       {!saving && view === "listings" ? (
         <>
+          <View style={styles.filterRow}>
+            <View style={styles.filterColumn}>
+              <Text style={styles.filterLabel}>Show listings</Text>
+              <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Filter by ownership"
+                  accessibilityState={{ expanded: openDropdown === "ownership" }}
+                  onPress={() =>
+                      setOpenDropdown(openDropdown === "ownership" ? null : "ownership")
+                  }
+                  style={styles.dropdownButton}
+              >
+                <Text style={styles.dropdownText}>
+                  {listingFilter === "all" ? "All Items" : "My Listings"} ▼
+                </Text>
+              </Pressable>
+
+              {openDropdown === "ownership" ? (
+                  <View style={styles.dropdownMenu}>
+                    {(["all", "mine"] as const).map((value) => (
+                        <Pressable
+                            key={value}
+                            accessibilityRole="button"
+                            onPress={() => {
+                              setListingFilter(value);
+                              setOpenDropdown(null);
+                            }}
+                            style={styles.dropdownOption}
+                        >
+                          <Text style={styles.dropdownText}>
+                            {value === "all" ? "All Items" : "My Listings"}
+                          </Text>
+                        </Pressable>
+                    ))}
+                  </View>
+              ) : null}
+            </View>
+
+            <View style={styles.filterColumn}>
+              <Text style={styles.filterLabel}>Item type</Text>
+              <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Filter by item type"
+                  accessibilityState={{ expanded: openDropdown === "type" }}
+                  onPress={() =>
+                      setOpenDropdown(openDropdown === "type" ? null : "type")
+                  }
+                  style={styles.dropdownButton}
+              >
+                <Text style={styles.dropdownText}>
+                  {typeFilter === "all" ? "All Types" : typeFilter === "LOST" ? "Lost" : "Found"} ▼
+                </Text>
+              </Pressable>
+
+              {openDropdown === "type" ? (
+                  <View style={styles.dropdownMenu}>
+                    {(["all", "LOST", "FOUND"] as const).map((value) => (
+                        <Pressable
+                            key={value}
+                            accessibilityRole="button"
+                            onPress={() => {
+                              setTypeFilter(value);
+                              setOpenDropdown(null);
+                            }}
+                            style={styles.dropdownOption}
+                        >
+                          <Text style={styles.dropdownText}>
+                            {value === "all" ? "All Types" : value === "LOST" ? "Lost" : "Found"}
+                          </Text>
+                        </Pressable>
+                    ))}
+                  </View>
+              ) : null}
+            </View>
+          </View>
           <View style={styles.legend}>
             {AGE_BANDS.map((band) => (
               <View key={band} style={styles.legendItem}>
@@ -144,12 +230,16 @@ export function MapPanel({
             </View>
           ) : null}
           {listingsStatus === "ready" ? (
-            <FlatList
-              style={styles.list}
-              data={listings}
-              keyExtractor={(listing) => String(listing.id)}
-              ListEmptyComponent={<Text style={styles.stateText}>Nothing has been posted yet. Tap the map to drop the first pin.</Text>}
-              renderItem={({ item }) => (
+              <FlatList
+                style={styles.list}
+                data={visibleListings}
+                keyExtractor={(listing) => String(listing.id)}
+                ListEmptyComponent={
+                <Text style={styles.stateText}>
+                  {listings.length === 0 ? "Nothing has been posted yet. Tap the map to drop the first pin." : "No listings match your selected filters."}
+                </Text>
+                }
+                renderItem={({ item }) => (
                 <Pressable accessibilityRole="link" onPress={() => onOpenListing(item)} style={styles.row}>
                   <Text style={styles.rowText}>
                     {LISTING_TYPE_LABELS[item.listingType]}: {item.title}
@@ -252,4 +342,11 @@ const styles = StyleSheet.create({
   legendText: { color: "#3C4A57", fontSize: 13 },
   secondaryButton: { alignSelf: "flex-start", borderColor: "#112E51", borderRadius: 8, borderWidth: 1, marginTop: 4, paddingHorizontal: 12, paddingVertical: 6 },
   secondaryButtonText: { color: "#112E51", fontSize: 14, fontWeight: "600" },
+  filterRow: { flexDirection: "row", gap: 8, marginBottom: 12, zIndex: 10,},
+  filterColumn: { flex: 1, minWidth: 0,},
+  filterLabel: {fontSize: 12, fontWeight: "600", color: "#55636F", marginBottom: 5,},
+  dropdownButton: { borderWidth: 1, borderColor: "#CBD5E1", borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: "#FFFFFF",},
+  dropdownText: { color: "#112E51", fontSize: 13, fontWeight: "500",},
+  dropdownMenu: { backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#CBD5E1", borderRadius: 8, marginTop: 4, overflow: "hidden",},
+  dropdownOption: { paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#E2E8F0",},
 });
