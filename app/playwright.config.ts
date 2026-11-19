@@ -18,6 +18,8 @@ export default defineConfig({
     // The app is built from the repo root. This server also lets a test open /map or /items/42 directly.
     command: "npm run build:web && node app/scripts/serve-web-build.js",
     cwd: "..",
+    // The auth browser test intercepts GitHub, so CI needs only a dummy public ID, never provider secrets.
+    env: { EXPO_PUBLIC_GITHUB_CLIENT_ID: process.env.EXPO_PUBLIC_GITHUB_CLIENT_ID || "playwright-github-client" },
     url: "http://localhost:8081",
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

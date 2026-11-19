@@ -6,7 +6,14 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import ItemDetailsScreen from './screens/ItemDetailsScreen';
 import ReportItemScreen from './screens/ReportItemScreen';
 
-export default function App() {
+type SignInProps = {
+  onGitHubSignIn?: () => void;
+  githubReady?: boolean;
+  githubBusy?: boolean;
+  githubError?: string | null;
+};
+
+export default function App({ onGitHubSignIn, githubReady = false, githubBusy = false, githubError = null }: SignInProps) {
   const [notice, setNotice] = useState('');
   const [currentScreen, setCurrentScreen] = useState('home');
 
@@ -33,8 +40,16 @@ export default function App() {
 
         <View style={styles.buttons}>
           <SignInButton label="Continue with Google" onPress={() => setNotice('Google sign-in will be added next.')} />
-          <SignInButton label="Continue with GitHub" onPress={() => setNotice('GitHub sign-in will be added next.')} />
+          <SignInButton
+            label={githubBusy ? 'Signing in with GitHub…' : 'Continue with GitHub'}
+            onPress={() => {
+              setNotice('');
+              onGitHubSignIn?.();
+            }}
+            disabled={!githubReady || githubBusy}
+          />
         </View>
+        {githubError ? <Text role="alert" style={styles.error}>{githubError}</Text> : null}
         {notice ? <Text accessibilityLiveRegion="polite" style={styles.notice}>{notice}</Text> : null}
         <Text style={styles.note}>Sign in to browse and report campus finds.</Text>
 
@@ -47,12 +62,14 @@ export default function App() {
   );
 }
 
-function SignInButton({ label, onPress }: { label: string; onPress: () => void }) {
+function SignInButton({ label, onPress, disabled = false }: { label: string; onPress: () => void; disabled?: boolean }) {
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+      style={({ pressed }) => [styles.button, pressed && styles.buttonPressed, disabled && styles.buttonDisabled]}
     >
       <Text style={styles.buttonLabel}>{label}</Text>
     </Pressable>
@@ -97,8 +114,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
   },
   buttonPressed: { backgroundColor: '#EAF1EC' },
+  buttonDisabled: { opacity: 0.5 },
   buttonLabel: { color: '#1C2A22', fontSize: 15, fontWeight: '600' },
   notice: { color: '#0B5D43', fontSize: 13, marginTop: 14, textAlign: 'center' },
+  error: { color: '#8A0B20', fontSize: 14, lineHeight: 20, marginTop: 14, textAlign: 'center' },
   note: { color: '#77837B', fontSize: 13, lineHeight: 20, marginTop: 20, textAlign: 'center' },
   testButtons: { gap: 12, marginTop: 20 },
 });

@@ -11,6 +11,8 @@ import org.springframework.security.oauth2.jose.jws.MacAlgorithm
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.JwtValidators
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
@@ -47,6 +49,7 @@ class SecurityConfig {
                 PUBLIC_PATHS.forEach { authorize(it, permitAll) }
                 // Campus reference data with nothing about any user. Only reading is public.
                 authorize(HttpMethod.GET, "/api/buildings", permitAll)
+                authorize(HttpMethod.POST, "/auth/github", permitAll)
                 authorize(anyRequest, authenticated)
             }
             exceptionHandling {
@@ -56,7 +59,7 @@ class SecurityConfig {
             oauth2ResourceServer {
                 authenticationEntryPoint = ProblemAuthenticationEntryPoint()
                 accessDeniedHandler = ProblemAccessDeniedHandler()
-                jwt { }
+                jwt { jwtAuthenticationConverter = rolesConverter() }
             }
         }
         return http.build()
@@ -74,6 +77,14 @@ class SecurityConfig {
         val decoder = NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.HS256).build()
         decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(properties.jwt.issuer))
         return decoder
+    }
+
+    private fun rolesConverter(): JwtAuthenticationConverter {
+        val roles = JwtGrantedAuthoritiesConverter().apply {
+            setAuthoritiesClaimName("roles")
+            setAuthorityPrefix("ROLE_")
+        }
+        return JwtAuthenticationConverter().apply { setJwtGrantedAuthoritiesConverter(roles) }
     }
 
     /** Lets the configured browser origins call the API. */

@@ -1,6 +1,15 @@
 import { Platform } from "react-native";
 import { tokenStore } from "./tokenStore";
 
+/** The exact values used by Expo in one authorization-code sign-in attempt. */
+export type GitHubCodeExchange = { code: string; codeVerifier: string; redirectUri: string };
+
+/** The app session returned by the backend; it contains no GitHub access token. */
+export type AuthSessionResponse = {
+  token: string;
+  user: { id: number; email: string | null; displayName: string; role: "USER" | "ADMIN" };
+};
+
 /** A campus building, as described in docs/openapi.yaml. */
 export type Building = {
   id: number;
@@ -165,6 +174,15 @@ async function send<T>(path: string, { signal, timeoutMs = DEFAULT_TIMEOUT_MS, m
  */
 export function getBuildings(options?: RequestOptions): Promise<Building[]> {
   return send<Building[]>("/api/buildings", options);
+}
+
+/** Completes sign-in on the API. No existing app token is needed or sent. */
+export async function exchangeGitHubCode(body: GitHubCodeExchange): Promise<AuthSessionResponse> {
+  const response = await send<AuthSessionResponse>("/auth/github", { method: "POST", body });
+  if (!response || typeof response.token !== "string" || !response.token.trim()) {
+    throw new ApiError("The server returned an invalid sign-in response. Please try again.", null);
+  }
+  return response;
 }
 
 /**
