@@ -140,7 +140,6 @@ export function MapPanel({
               <Text style={styles.filterLabel}>Show listings</Text>
               <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={`${listingFilter === "all" ? "All Items" : "My Listings"} — Filter by ownership`}
                   accessibilityState={{ expanded: openDropdown === "ownership" }}
                   onPress={() =>
                       setOpenDropdown(openDropdown === "ownership" ? null : "ownership")
@@ -177,7 +176,6 @@ export function MapPanel({
               <Text style={styles.filterLabel}>Item type</Text>
               <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={`${typeFilter === "all" ? "All Types" : typeFilter === "LOST" ? "Lost" : "Found"} — Filter by item type`}
                   accessibilityState={{ expanded: openDropdown === "type" }}
                   onPress={() =>
                       setOpenDropdown(openDropdown === "type" ? null : "type")
