@@ -99,13 +99,25 @@ export function MapScreen({ focusListingId = null }: { focusListingId?: number |
   return (
     <View style={styles.screen}>
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <View>
+        <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back to Home"
+            onPress={() => router.replace("/")}
+            style={styles.backButton}
+        >
+          <Text style={styles.backButtonText}>← Back</Text>
+        </Pressable>
+        <View style={styles.headerCenter} pointerEvents="none">
           <Text accessibilityRole="header" style={styles.title}>
             OtterFind
           </Text>
           <Text style={styles.subtitle}>Campus map</Text>
         </View>
-        <Pressable accessibilityRole="button" onPress={showWholeCampus} style={styles.headerButton}>
+        <Pressable
+            accessibilityRole="button"
+            onPress={showWholeCampus}
+            style={styles.headerButton}
+        >
           <Text style={styles.headerButtonText}>Show whole campus</Text>
         </Pressable>
       </View>
@@ -161,6 +173,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingBottom: 10,
     paddingHorizontal: 14,
+    minHeight: 70,
   },
   title: { color: "#FFFFFF", fontSize: 20, fontWeight: "700" },
   subtitle: { color: "#DCE6F1", fontSize: 13 },
@@ -172,4 +185,7 @@ const styles = StyleSheet.create({
   panelWide: { width: 360 },
   panelNarrow: { height: "46%" },
   panelNarrowSaving: { height: "72%" },
+  backButton: { borderColor: "#FFFFFF", borderRadius: 8, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 6, zIndex: 1,},
+  backButtonText: {color: "#FFFFFF", fontSize: 13, fontWeight: "600",},
+  headerCenter: { position: "absolute", left: 0, right: 0, bottom: 10, alignItems: "center",},
 });
