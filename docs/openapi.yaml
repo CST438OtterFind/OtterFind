@@ -11,6 +11,59 @@ servers:
   - url: http://localhost:8080
     description: Local stack from `docker compose up`
 paths:
+  /auth/github:
+    post:
+      operationId: signInWithGitHub
+      summary: Exchange a GitHub authorization code for an OtterFind session
+      description: >
+        Follows Appendix I. The web app sends the code, PKCE verifier and exact registered
+        redirect URI. The API verifies the provider identity, reuses the account by provider ID
+        or creates a USER account using its verified primary email. An email already associated
+        with another identity produces 409 and never links accounts. The GitHub token is not returned.
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CodeExchangeRequest"
+      responses:
+        "200":
+          description: Signed in; app JWT expires after APP_JWT_TTL (default one hour)
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                const: no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Invalid input, disallowed callback, rejected code or unverified primary email
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Email belongs to another identity; detail names the original provider
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "502":
+          description: GitHub is unavailable or returned an invalid identity response
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "503":
+          description: GitHub sign-in credentials are not configured on the API
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /api/buildings:
     get:
       operationId: listBuildings
@@ -355,6 +408,42 @@ components:
           schema:
             $ref: "#/components/schemas/Problem"
   schemas:
+    CodeExchangeRequest:
+      type: object
+      required: [code, codeVerifier, redirectUri]
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 2048
+        codeVerifier:
+          type: string
+          pattern: '^[A-Za-z0-9._~-]{43,128}$'
+        redirectUri:
+          type: string
+          maxLength: 2048
+          example: http://localhost:8081/auth
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+          description: OtterFind HS256 JWT; sub is users.id, with iss, iat, exp, email and roles claims
+        user:
+          type: object
+          required: [id, email, displayName, role]
+          properties:
+            id:
+              type: integer
+              format: int64
+            email:
+              type: [string, "null"]
+            displayName:
+              type: string
+            role:
+              type: string
+              enum: [USER, ADMIN]
     Building:
       type: object
       required: [id, name, latitude, longitude]

@@ -22,6 +22,13 @@ app:
     # trailing colon, Spring would pass the literal text "${APP_JWT_ISSUER}" through as the value.
     secret-base64: ${APP_JWT_SECRET_BASE64:}
     issuer: ${APP_JWT_ISSUER:}
+    ttl: ${APP_JWT_TTL:PT1H}
   cors:
     # Comma-separated. Empty blocks every browser origin until the web client is deployed.
     origins: ${APP_CORS_ORIGINS:}
+  oauth:
+    github:
+      # Read only by the API; never expose the secret through EXPO_PUBLIC_* variables.
+      client-id: ${GITHUB_CLIENT_ID:}
+      client-secret: ${GITHUB_CLIENT_SECRET:}
+      redirect-uris: ${GITHUB_REDIRECT_URIS:http://localhost:8081/auth}
