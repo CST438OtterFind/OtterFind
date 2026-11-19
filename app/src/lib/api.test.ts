@@ -1,4 +1,4 @@
-import { ApiError, apiBaseUrl, createListing, deleteListing, getBuildings, getListing, getListings, getTestAccountToken, type NewListing, setSessionExpiredHandler } from "./api";
+import { ApiError, apiBaseUrl, createListing, deleteListing, exchangeGitHubCode, getBuildings, getListing, getListings, getTestAccountToken, type NewListing, setSessionExpiredHandler } from "./api";
 import { tokenStore } from "./tokenStore";
 
 jest.mock("./tokenStore", () => ({ tokenStore: { get: jest.fn() } }));
@@ -41,6 +41,26 @@ describe("apiBaseUrl", () => {
 
   it("treats a blank value as not configured", () => {
     expect(apiBaseUrl("  ", "web")).toBe("http://localhost:8080");
+  });
+});
+
+describe("exchangeGitHubCode", () => {
+  const body = { code: "code", codeVerifier: "verifier", redirectUri: "http://localhost:8081/auth" };
+
+  it("posts the exchange without attaching a previous app token", async () => {
+    fetchMock.mockResolvedValue(respondWith(200, { token: "new-app-token", user: { id: 1 } }));
+    await expect(exchangeGitHubCode(body)).resolves.toMatchObject({ token: "new-app-token" });
+    expect(fetchMock.mock.calls[0][0]).toMatch(/\/auth\/github$/);
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    });
+    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBeUndefined();
+    expect(storedToken).not.toHaveBeenCalled();
+  });
+
+  it.each([null, {}, { token: "" }, { token: " " }])("rejects a malformed sign-in response", async (response) => {
+    fetchMock.mockResolvedValue(respondWith(200, response));
+    await expect(exchangeGitHubCode(body)).rejects.toMatchObject({ message: expect.stringContaining("invalid sign-in response") });
   });
 });
 

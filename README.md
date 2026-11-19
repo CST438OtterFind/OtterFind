@@ -1,5 +1,29 @@
 # OtterFind
 
+## GitHub sign-in on web
+
+Register a GitHub **OAuth App** with homepage `http://localhost:8081` and callback
+`http://localhost:8081/auth`, following `docs/appendix_i_auth.md`.
+
+In your root `.env`, set `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, and
+`EXPO_PUBLIC_GITHUB_CLIENT_ID` (the same public client ID). The secret must only be in
+`GITHUB_CLIENT_SECRET`. The API allows the local callback by default; set `GITHUB_REDIRECT_URIS`
+to a comma-separated list of exact callbacks when adding a deployed environment.
+
+Start the local API with `docker compose up --build` after filling in the JWT settings in `.env`.
+This uses local PostgreSQL. In another terminal at the repository root, run `npm run web` and
+open `http://localhost:8081` (use this hostname consistently, rather than `127.0.0.1` or a LAN IP).
+Restart Expo after changing public environment variables.
+
+Click **Continue with GitHub** and approve access. The popup returns to `/auth` and closes;
+the original window exchanges the code with the API, saves the app JWT, and shows the listings.
+Signing out and signing in again should reuse the same account. Cancelled sign-in should leave
+you signed out. Google remains a placeholder; this milestone enables GitHub on web.
+
+For a deployed web client, register its HTTPS `/auth` callback on GitHub and add it to
+`GITHUB_REDIRECT_URIS` on the API. Also set the API's `APP_CORS_ORIGINS` to allow that web origin,
+and supply `EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_GITHUB_CLIENT_ID` when building the web app.
+
 The Expo app lives at the repository root. The Spring Boot API remains in `api/`. The map, the listings and
 the app's routes are in `app/`, which shares one install with the root through npm workspaces.
 

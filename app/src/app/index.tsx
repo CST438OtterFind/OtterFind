@@ -4,6 +4,7 @@ import { Link } from "expo-router";
 import { HomeScreen } from "@/features/listings/HomeScreen";
 import { ApiError, getTestAccountToken } from "@/lib/api";
 import { useSession } from "@/lib/session";
+import { useGitHubLogin } from "@/features/auth/useGitHubLogin";
 import App from "../../../App";
 
 const TEST_ACCOUNT_EMAIL = "e2e-user@example.test";
@@ -18,6 +19,7 @@ export default function Index() {
 
 function SignedOutHome() {
   const { signIn } = useSession();
+  const github = useGitHubLogin();
   const [error, setError] = useState<string | null>(null);
 
   // Standing in for sign-in until #8 lands. Only appears with EXPO_PUBLIC_TEST_ACCOUNT=true.
@@ -33,7 +35,12 @@ function SignedOutHome() {
   return (
     <View style={styles.screen}>
       <View style={styles.app}>
-        <App />
+        <App
+          onGitHubSignIn={() => void github.signInWithGitHub()}
+          githubReady={github.ready}
+          githubBusy={github.busy}
+          githubError={github.error}
+        />
       </View>
       <View style={styles.bar}>
         <Link href="/map" style={styles.link}>
